@@ -33,3 +33,12 @@ for index, el in enumerate(xml_after_match):
 
 xml_epgu_elem = xml_epgu_elem[::-1]
 print(xml_epgu_elem)
+
+# Добавляем в список отдельно списки по лицам
+for el in xml_epgu_elem:
+    xml_epgu.append([xml_after_match[el:]])
+    del xml_after_match[el:]
+
+
+for el in xml_epgu:
+    print(el)
