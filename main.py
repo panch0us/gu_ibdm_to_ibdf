@@ -41,8 +41,10 @@ for el in xml_epgu_elem:
     xml_epgu.append(xml_after_match[el:])
     del xml_after_match[el:]
 
+xml_epgu = xml_epgu[::-1]
+
 # получаем список с лицом, из общего списка всех лиц
-for el_list in xml_epgu[::-1]:
+for el_list in xml_epgu:
     # перебираем все теги
     for el in el_list:
         if '<CPSurname>' in el:
@@ -58,3 +60,9 @@ for el_list in xml_epgu[::-1]:
             print('(', end='')
         if '<CPLSurname>' in el:
             print(el + ')')
+
+for el in xml_epgu:
+    print(el)
+
+# попробовать match/case уменьшить список и оставить блок <ConvictionPerson>?
+# ИЛИ лучше оставить ТЕГ <Applicant type=" и блок <ConvictionPerson>?
