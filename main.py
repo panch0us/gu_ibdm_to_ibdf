@@ -2,7 +2,9 @@
 xml_after_strip = []
 # список для обработки xml-файла - удаления из него всё до тега <Document> и проверка его на небольшое соответствие
 xml_after_match = []
+# в списке хранится номер элемента списка с тегом <Applicant type=
 xml_epgu_elem = []
+# в списке каждое лицо хранится в отдельном списке
 xml_epgu = []
 
 with open("Запросы от 20250113155643.xml", "r", encoding="utf-8") as xml_input:
@@ -36,9 +38,23 @@ print(xml_epgu_elem)
 
 # Добавляем в список отдельно списки по лицам
 for el in xml_epgu_elem:
-    xml_epgu.append([xml_after_match[el:]])
+    xml_epgu.append(xml_after_match[el:])
     del xml_after_match[el:]
 
-
-for el in xml_epgu:
-    print(el)
+# получаем список с лицом, из общего списка всех лиц
+for el_list in xml_epgu[::-1]:
+    # перебираем все теги
+    for el in el_list:
+        if '<CPSurname>' in el:
+            print(el, end='')
+        if '<CPName>' in el:
+            print(el, end='')
+        if '<CPPatronymic>' in el:
+            print(el, end='')
+        if '<CPBirthday>' in el:
+            print(el)
+        # Продумать блок со старыми ФИО???
+        if '<CPLastFIO>' in el:
+            print('(', end='')
+        if '<CPLSurname>' in el:
+            print(el + ')')
