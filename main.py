@@ -1,11 +1,12 @@
-_filter = {'<?xml version="1.0" encoding="UTF-8"?>', '<NaturalPerson>', '<ListID>', '<ListTime>', '<ListItem>',
-           '<Document>', '<DocumentID>', '<Procedure>', '<NaturalPerson>', '<Surname>'}
+from tag_filter import tag_filter
+
 # в списке хранится номер элемента списка с тегом <Applicant type=
 xml_epgu_elem = []
 # в списке каждое лицо хранится в отдельном списке
 xml_epgu = []
 
-def open_and_strip_xml() -> list[str]:
+
+def open_and_strip_xml():
     """
     Открывает xml-файл. Удаляет лишние пробелы слева и справа в каждой строке.
     :return: Список с тегами без лишних пробелов.
@@ -21,52 +22,44 @@ def open_and_strip_xml() -> list[str]:
             _xml_after_strip.append(line.strip())
     return _xml_after_strip
 
-
-def check_and_match_xml(bind_xml_after_strip: list[str]) -> list[str]:
+def check_xml(bind_xml_after_open):
     """
-    Переименовать, не только проверка, но и урезание. Возмножно переработать, с учетом блока <ConvictionPerson>? (внизу)
-    :param bind_xml_after_strip:
-    :return:
+    Проверяем XML-файл на соответствие стандартному. Пока встречался один вариант. Если не совпадает - исключение.
+    :param bind_xml_after_open:
+    :return: 0
     """
-    match bind_xml_after_strip:
-        case ['<?xml version="1.0" encoding="UTF-8"?>', '<List>', _, _, _,
-              '<Document>', _,
-              '<Procedure>issue</Procedure>',
-              *_xml_after_check_and_match, '</Document>',
-              '</List>']:
-            print("xml_after_check_and_match: ", _xml_after_check_and_match)
+    match bind_xml_after_open:
+        case ['<?xml version="1.0" encoding="UTF-8"?>', '<List>', _, _, _, '<Document>', _,
+              '<Procedure>issue</Procedure>', *_, '</Document>', '</List>']:
+            print("Стандартный XML")
         case _:
-            raise SyntaxError("Формат файла XML не стандартный")
-    return _xml_after_check_and_match
+            raise SyntaxError("Ошибка. Формат файла XML не стандартный")
+    return 0
 
-
-def cut_xml(bind_xml_after_check_and_match: list[str]) -> list[str]:
-    """НЕ РАБОТАЕТ - НУЖНО УБРАТЬ ВСЕ ЛИШНИЕ ТЕГИ"""
-    _xml_after_cut = []
-
-    for el in _filter:
-        for line in xml_after_check_and_match:
-            if el in line:
-                pass
-            else:
-                _xml_after_cut.append(line)
-
-    return _xml_after_cut
+def cut_xml(bind_xml_after_strip, bind_tag_filter):
+    """
+    Обрезаем XML-файл по фильтру
+    :param bind_xml_after_strip:
+    :param bind_tag_filter:
+    :return: Списковое включение
+    """
+    return [item for item in bind_xml_after_strip if item not in bind_tag_filter]
 
 
 if __name__ == '__main__':
-
-    xml_after_open_and_strip: list[str] = open_and_strip_xml()
+    # Открываем XML-файл
+    xml_after_open_and_strip = open_and_strip_xml()
     print("xml_after_open_and_strip: ", xml_after_open_and_strip)
 
-    # список для обработки xml-файла - удаления из него всё до тега <Document> и проверка его на небольшое соответствие
-    xml_after_check_and_match: list[str] = check_and_match_xml(xml_after_open_and_strip)
+    # Обрезаем XML-файл
+    xml_cut = cut_xml(xml_after_open_and_strip, tag_filter)
+    print('xml_cut: ', xml_cut)
 
-    xml_after_cut : list[str] = cut_xml(xml_after_check_and_match)
-    print('xml_after_cut: ', xml_after_cut)
+    xml_new = [item for item in xml_after_open_and_strip if item not in tag_filter]
+    print('xml_new: ', xml_new)
 
     # Находим все вхождения новых лиц по типам подачи заявлений (тэг <Applicant type=)
-    for index, el in enumerate(xml_after_check_and_match):
+    for index, el in enumerate(xml_cut):
         if '<Applicant type=' in el:
             xml_epgu_elem.append(index)
             # print(xml_after_match[index:])
@@ -78,8 +71,8 @@ if __name__ == '__main__':
 
     # Добавляем в список отдельно списки по лицам
     for el in xml_epgu_elem:
-        xml_epgu.append(xml_after_check_and_match[el:])
-        del xml_after_check_and_match[el:]
+        xml_epgu.append(xml_cut[el:])
+        del xml_cut[el:]
 
     xml_epgu = xml_epgu[::-1]
 
