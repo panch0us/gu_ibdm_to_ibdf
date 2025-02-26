@@ -43,7 +43,13 @@ def cut_xml(bind_xml_after_strip, bind_tag_filter):
     :param bind_tag_filter:
     :return: Списковое включение
     """
-    return [item for item in bind_xml_after_strip if item not in bind_tag_filter]
+    #return [item for item in bind_xml_after_strip if item not in bind_tag_filter]
+    return [tag
+                for tag in bind_xml_after_strip
+                    for flt in bind_tag_filter
+                        if tag.startswith(flt)
+            ]
+    # ПЕРЕДАЛАТЬ ФИЛЬТР ПО НУДНЫМ ТЕГАМ, А НЕ ПО НЕНУЖНЫМ,,,,,,,!!!
 
 
 if __name__ == '__main__':
@@ -54,9 +60,6 @@ if __name__ == '__main__':
     # Обрезаем XML-файл
     xml_cut = cut_xml(xml_after_open_and_strip, tag_filter)
     print('xml_cut: ', xml_cut)
-
-    xml_new = [item for item in xml_after_open_and_strip if item not in tag_filter]
-    print('xml_new: ', xml_new)
 
     # Находим все вхождения новых лиц по типам подачи заявлений (тэг <Applicant type=)
     for index, el in enumerate(xml_cut):
@@ -75,6 +78,7 @@ if __name__ == '__main__':
         del xml_cut[el:]
 
     xml_epgu = xml_epgu[::-1]
+"""
 
     # получаем список с лицом, из общего списка всех лиц
     for el_list in xml_epgu:
@@ -96,6 +100,6 @@ if __name__ == '__main__':
 
     for el in xml_epgu:
         print(el)
-
+"""
     # попробовать match/case уменьшить список и оставить блок <ConvictionPerson>?
     # ИЛИ лучше оставить ТЕГ <Applicant type=" и блок <ConvictionPerson>?
