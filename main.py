@@ -47,14 +47,13 @@ def cut_xml(bind_xml_after_strip, bind_tags):
                     if el.startswith(tag)]
 
 def index_xml(bind_xml_cut):
-    _xml_epgu_elem = []
-    # Находим все вхождения новых лиц по типам подачи заявлений (тэг <Applicant type=)
-    for index, el in enumerate(bind_xml_cut):
-        if '<Applicant type=' in el:
-            _xml_epgu_elem.append(index)
-
-    _xml_epgu_elem = _xml_epgu_elem[::-1]
-    return _xml_epgu_elem
+    """
+    По обрезанному XML-файлу находим тег <Applicant type=> и в отдельном списке проставляем по этому тегу индексы.
+    Инверсируем этот список.
+    :param bind_xml_cut:
+    :return: Инверсированный список индексов по тегу <Applicant type=> из обрезанного XML-файла
+    """
+    return [index for index, tag in enumerate(bind_xml_cut) if tag.startswith('<Applicant type=')][::-1]
 
 
 if __name__ == '__main__':
@@ -69,7 +68,9 @@ if __name__ == '__main__':
     xml_cut = cut_xml(xml_after_open_and_strip, tags)
     print('xml_cut: ', xml_cut)
 
+    # Создаем список с индексами по обрезанному XML-файл по тегу <Applicant type=>
     xml_after_index = index_xml(xml_cut)
+    print('xml_after_index: ', xml_after_index)
 
 
     # Добавляем в список отдельно списки по лицам
@@ -82,3 +83,5 @@ if __name__ == '__main__':
 
     for el in xml_epgu:
         print(el)
+
+    print(xml_cut)
