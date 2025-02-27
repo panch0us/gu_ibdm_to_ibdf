@@ -1,7 +1,5 @@
 from xml_tags import tags
 
-# в списке хранится номер элемента списка с тегом <Applicant type=
-xml_epgu_elem = []
 # в списке каждое лицо хранится в отдельном списке
 xml_epgu = []
 
@@ -48,29 +46,34 @@ def cut_xml(bind_xml_after_strip, bind_tags):
                 for tag in bind_tags
                     if el.startswith(tag)]
 
+def index_xml(bind_xml_cut):
+    _xml_epgu_elem = []
+    # Находим все вхождения новых лиц по типам подачи заявлений (тэг <Applicant type=)
+    for index, el in enumerate(bind_xml_cut):
+        if '<Applicant type=' in el:
+            _xml_epgu_elem.append(index)
+
+    _xml_epgu_elem = _xml_epgu_elem[::-1]
+    return _xml_epgu_elem
+
 
 if __name__ == '__main__':
     # Открываем XML-файл
     xml_after_open_and_strip = open_and_strip_xml()
     print("xml_after_open_and_strip: ", xml_after_open_and_strip)
 
-    # Проверка XML-файла
+    # Проверяем XML-файла
     check_xml(xml_after_open_and_strip)
 
     # Обрезаем XML-файл
     xml_cut = cut_xml(xml_after_open_and_strip, tags)
     print('xml_cut: ', xml_cut)
 
-    # Находим все вхождения новых лиц по типам подачи заявлений (тэг <Applicant type=)
-    for index, el in enumerate(xml_cut):
-        if '<Applicant type=' in el:
-            xml_epgu_elem.append(index)
+    xml_after_index = index_xml(xml_cut)
 
-    xml_epgu_elem = xml_epgu_elem[::-1]
-    print(xml_epgu_elem)
 
     # Добавляем в список отдельно списки по лицам
-    for el in xml_epgu_elem:
+    for el in xml_after_index:
         xml_epgu.append(xml_cut[el:])
         del xml_cut[el:]
 
