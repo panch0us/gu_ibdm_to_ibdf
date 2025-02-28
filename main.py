@@ -1,8 +1,5 @@
 from xml_tags import tags
 
-# в списке каждое лицо хранится в отдельном списке
-xml_epgu = []
-
 
 def open_and_strip_xml():
     """
@@ -55,6 +52,17 @@ def index_xml(bind_xml_cut):
     """
     return [index for index, tag in enumerate(bind_xml_cut) if tag.startswith('<Applicant type=')][::-1]
 
+def build_lists_by_tag_from_xml(bind_xml_after_index):
+    # в списке каждое лицо хранится в отдельном списке
+    xml_epgu = []
+    # Добавляем в список отдельно списки по лицам
+    for el in bind_xml_after_index:
+        xml_epgu.append(xml_cut[el:])
+        del xml_cut[el:]
+
+    xml_epgu = xml_epgu[::-1]
+    return xml_epgu
+
 
 if __name__ == '__main__':
     # Открываем XML-файл
@@ -72,14 +80,7 @@ if __name__ == '__main__':
     xml_after_index = index_xml(xml_cut)
     print('xml_after_index: ', xml_after_index)
 
-
-    # Добавляем в список отдельно списки по лицам
-    for el in xml_after_index:
-        xml_epgu.append(xml_cut[el:])
-        del xml_cut[el:]
-
-    xml_epgu = xml_epgu[::-1]
-
+    xml_epgu = build_lists_by_tag_from_xml(xml_after_index)
 
     for el in xml_epgu:
         print(el)
