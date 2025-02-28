@@ -52,13 +52,19 @@ def index_xml(bind_xml_cut):
     """
     return [index for index, tag in enumerate(bind_xml_cut) if tag.startswith('<Applicant type=')][::-1]
 
-def build_lists_by_tag_from_xml(bind_xml_after_index):
-    # в списке каждое лицо хранится в отдельном списке
+def build_list_by_tag_from_xml(bind_xml_after_cut, bind_xml_after_index):
+    """
+    Создает список списков по списку индексов, отобранных в функции index_xml, через аргумент bind_xml_after_index.
+    В каждый отдельный список помещается уникальное лицо.
+    :param bind_xml_after_cut:
+    :param bind_xml_after_index:
+    :return: Список списков с отдельными лицами.
+    """
     xml_epgu = []
     # Добавляем в список отдельно списки по лицам
     for el in bind_xml_after_index:
-        xml_epgu.append(xml_cut[el:])
-        del xml_cut[el:]
+        xml_epgu.append(bind_xml_after_cut[el:])
+        del bind_xml_after_cut[el:]
 
     xml_epgu = xml_epgu[::-1]
     return xml_epgu
@@ -73,16 +79,16 @@ if __name__ == '__main__':
     check_xml(xml_after_open_and_strip)
 
     # Обрезаем XML-файл
-    xml_cut = cut_xml(xml_after_open_and_strip, tags)
-    print('xml_cut: ', xml_cut)
+    xml_after_cut = cut_xml(xml_after_open_and_strip, tags)
+    print('xml_cut: ', xml_after_cut)
 
     # Создаем список с индексами по обрезанному XML-файл по тегу <Applicant type=>
-    xml_after_index = index_xml(xml_cut)
+    xml_after_index = index_xml(xml_after_cut)
     print('xml_after_index: ', xml_after_index)
 
-    xml_epgu = build_lists_by_tag_from_xml(xml_after_index)
+    xml_epgu = build_list_by_tag_from_xml(xml_after_cut, xml_after_index)
 
     for el in xml_epgu:
         print(el)
 
-    print(xml_cut)
+    print(xml_after_cut)
