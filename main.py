@@ -94,3 +94,14 @@ if __name__ == '__main__':
         print(el)
 
     #print('\n', '* ' * 50, '\n', 'Список [xml_after_cut] должен стать пустым: (НУЖЕН ТЕСТ?)', xml_after_cut, '\n', '* ' * 50)
+
+    # Пытаемся разделить лиц по группам в зависимости от типа заявления (ЕПГУ, ФИЗ ЛИЦО + УЧЕСТЬ ПРОШЛЫЕ ФИО)
+    epgu = []
+    mfc = []
+    fiz_lica = []
+
+    for line in xml_after_decomposing_by_indexes_into_lists:
+        for tag in line:
+            if tag.startswith('<Applicant type="Единый портал гос.услуг"'):
+                print('ЕПГУ')
+
