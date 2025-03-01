@@ -9,7 +9,7 @@ def open_and_strip_xml():
     # список для обработки исходного xml-файла (без пробелов слева и справа)
     _xml_after_strip = []
     # открываем xml-файл в формате utf-8
-    with open('Запросы от 20250113155643.xml', 'r', encoding='utf-8') as xml_input:
+    with open('Запросы от 20250128113443.xml', 'r', encoding='utf-8') as xml_input:
         # читаем xml-файл построчно
         for line in xml_input:
             # берем каждую строку исходного xml-файла и удаляем лишние пробелы слева и справа
@@ -54,7 +54,7 @@ def index_xml(bind_xml_cut) -> list[int]:
 
 def decomposing_xml_by_indexes_into_lists(bind_xml_after_cut, bind_xml_after_index):
     """
-    Создает список списков по списку индексов, полученных их функции index_xml, через аргумент bind_xml_after_index.
+    Создает список списков по индексам, полученных их функции index_xml, через аргумент bind_xml_after_index.
     В каждый отдельный список помещается уникальное лицо.
     :param bind_xml_after_cut:
     :param bind_xml_after_index:
@@ -70,38 +70,57 @@ def decomposing_xml_by_indexes_into_lists(bind_xml_after_cut, bind_xml_after_ind
     _xml_after_decomposing_by_indexes_into_lists = _xml_after_decomposing_by_indexes_into_lists[::-1]
     return _xml_after_decomposing_by_indexes_into_lists
 
+def distribution_of_persons_by_groups(bind_xml_after_decomposing_by_indexes_into_lists):
+    """
+    Группируем лиц по видам подачи заявлений (ЕПГУ, Физ лицо, МФЦ)
+    :param bind_xml_after_decomposing_by_indexes_into_lists:
+    :return: словарь с ключами по видам заявлений и по значениям - спискам лиц
+    """
+    _groups_persons = {
+        'epgu': [],
+        'fiz_lico': [],
+        'mfc': []
+    }
+
+    for line in bind_xml_after_decomposing_by_indexes_into_lists:
+        if 'Единый портал гос.услуг' in line[0]:
+            _groups_persons['epgu'].append(line[1:])
+        if 'Физическое лицо' in line[0]:
+            _groups_persons['fiz_lico'].append(line[1:])
+        if 'МФЦ' in line[0]:
+            _groups_persons['mfc'].append(line[1:])
+
+    return _groups_persons
+
 
 if __name__ == '__main__':
     # Открываем XML-файл
     xml_after_open_and_strip = open_and_strip_xml()
-    print("xml_after_open_and_strip: ", xml_after_open_and_strip)
+    #print("xml_after_open_and_strip: ", xml_after_open_and_strip)
 
     # Проверяем XML-файл
     check_xml(xml_after_open_and_strip)
 
     # Обрезаем XML-файл
     xml_after_cut = cut_xml(xml_after_open_and_strip, tags)
-    print('xml_cut: ', xml_after_cut)
+    #print('xml_cut: ', xml_after_cut)
 
     # Создаем список с индексами по обрезанному XML-файл по тегу <Applicant type=>
     xml_after_index: list[int] = index_xml(xml_after_cut)
-    print('xml_after_index: ', xml_after_index)
+    #print('xml_after_index: ', xml_after_index)
 
     # Создаем список списков, в каждом из которых уникальные лица со всем тегами, отфильтрованными до этого этапа
     xml_after_decomposing_by_indexes_into_lists = decomposing_xml_by_indexes_into_lists(xml_after_cut, xml_after_index)
 
-    for el in xml_after_decomposing_by_indexes_into_lists:
-        print(el)
+    #for el in xml_after_decomposing_by_indexes_into_lists:
+    #    print(el)
 
     #print('\n', '* ' * 50, '\n', 'Список [xml_after_cut] должен стать пустым: (НУЖЕН ТЕСТ?)', xml_after_cut, '\n', '* ' * 50)
 
-    # Пытаемся разделить лиц по группам в зависимости от типа заявления (ЕПГУ, ФИЗ ЛИЦО + УЧЕСТЬ ПРОШЛЫЕ ФИО)
-    epgu = []
-    mfc = []
-    fiz_lica = []
+    # Группируем лиц в словарь по видам заявлений (ЕПГУ, МФЦ, Физ лицо)
+    groups_persons = distribution_of_persons_by_groups(xml_after_decomposing_by_indexes_into_lists)
 
-    for line in xml_after_decomposing_by_indexes_into_lists:
-        for tag in line:
-            if tag.startswith('<Applicant type="Единый портал гос.услуг"'):
-                print('ЕПГУ')
+    for k, v in groups_persons.items():
+        print(k, v)
 
+    #print(test_s['mfc'])
