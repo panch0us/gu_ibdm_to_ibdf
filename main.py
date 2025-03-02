@@ -1,6 +1,60 @@
 from xml_tags import tags
 
 
+class Person:
+    """
+    Лицо с ФИО и Датой рождения, а также со старыми ФИО
+    """
+    def __init__(self,
+                 CPSurname=None,        # Имя
+                 CPName=None,           # Фамилия
+                 CPPatronymic=None,     # Отчество
+                 CPLSurname=None,       # Старая фамилия
+                 CPLName=None,          # Старое имя
+                 CPLPatronymic=None,    # Старое отчество
+                 CPBirthday=None,       # Дата рождения (ДД.ММ.ГГГГ)
+                 flag_old_data=False,   # Есть ли у лица старые ФИО? (по умолчанию нет)
+                 ):
+
+        if CPSurname is None:
+            self.CPSurname = []
+        else:
+            self.CPSurname = list(CPSurname)
+        if CPName is None:
+            self.CPName = []
+        else:
+            self.CPName = list(CPName)
+        if CPPatronymic is None:
+            self.CPPatronymic = []
+        else:
+            self.CPPatronymic = list(CPPatronymic)
+        if CPLSurname is None:
+            self.CPLSurname = []
+        else:
+            self.CPLSurname = list(CPSurname)
+        if CPLName is None:
+            self.CPLName = []
+        else:
+            self.CPLName = list(CPLName)
+        if CPLPatronymic is None:
+            self.CPLPatronymic = []
+        else:
+            self.CPLPatronymic = list(CPLPatronymic)
+        if CPBirthday is None:
+            self.CPBirthday = []
+        else:
+            self.CPBirthday = list(CPBirthday)
+
+        self.flag_old_data = flag_old_data
+
+    def check_old_data(self):
+        """
+        Если есть старые ФИО - то флаг ставится в True
+        """
+        if (len(self.CPLSurname) or len(self.CPLName) or len(self.CPLPatronymic)) > 0:
+            self.flag_old_data = True
+
+
 def open_and_strip_xml():
     """
     Открывает xml-файл. Удаляет лишние пробелы слева и справа в каждой строке.
@@ -9,7 +63,7 @@ def open_and_strip_xml():
     # список для обработки исходного xml-файла (без пробелов слева и справа)
     _xml_after_strip = []
     # открываем xml-файл в формате utf-8
-    with open('Запросы от 20250128113443.xml', 'r', encoding='utf-8') as xml_input:
+    with open('Запросы от 20250113155643.xml', 'r', encoding='utf-8') as xml_input:
         # читаем xml-файл построчно
         for line in xml_input:
             # берем каждую строку исходного xml-файла и удаляем лишние пробелы слева и справа
@@ -70,7 +124,7 @@ def decomposing_xml_by_indexes_into_lists(bind_xml_after_cut, bind_xml_after_ind
     _xml_after_decomposing_by_indexes_into_lists = _xml_after_decomposing_by_indexes_into_lists[::-1]
     return _xml_after_decomposing_by_indexes_into_lists
 
-def distribution_of_persons_by_groups(bind_xml_after_decomposing_by_indexes_into_lists):
+def distribution_of_persons_by_groups(bind_xml_after_decomposing_by_indexes_into_lists) -> dict[str, list]:
     """
     Группируем лиц по видам подачи заявлений (ЕПГУ, Физ лицо, МФЦ)
     :param bind_xml_after_decomposing_by_indexes_into_lists:
@@ -78,17 +132,17 @@ def distribution_of_persons_by_groups(bind_xml_after_decomposing_by_indexes_into
     """
     _groups_persons = {
         'epgu': [],
+        'mfc': [],
         'fiz_lico': [],
-        'mfc': []
     }
 
     for line in bind_xml_after_decomposing_by_indexes_into_lists:
         if 'Единый портал гос.услуг' in line[0]:
             _groups_persons['epgu'].append(line[1:])
-        if 'Физическое лицо' in line[0]:
-            _groups_persons['fiz_lico'].append(line[1:])
         if 'МФЦ' in line[0]:
             _groups_persons['mfc'].append(line[1:])
+        if 'Физическое лицо' in line[0]:
+            _groups_persons['fiz_lico'].append(line[1:])
 
     return _groups_persons
 
@@ -96,7 +150,7 @@ def distribution_of_persons_by_groups(bind_xml_after_decomposing_by_indexes_into
 if __name__ == '__main__':
     # Открываем XML-файл
     xml_after_open_and_strip = open_and_strip_xml()
-    #print("xml_after_open_and_strip: ", xml_after_open_and_strip)
+    #print('xml_after_open_and_strip: ', xml_after_open_and_strip)
 
     # Проверяем XML-файл
     check_xml(xml_after_open_and_strip)
@@ -118,9 +172,36 @@ if __name__ == '__main__':
     #print('\n', '* ' * 50, '\n', 'Список [xml_after_cut] должен стать пустым: (НУЖЕН ТЕСТ?)', xml_after_cut, '\n', '* ' * 50)
 
     # Группируем лиц в словарь по видам заявлений (ЕПГУ, МФЦ, Физ лицо)
-    groups_persons = distribution_of_persons_by_groups(xml_after_decomposing_by_indexes_into_lists)
+    groups_persons: dict[str, list] = distribution_of_persons_by_groups(xml_after_decomposing_by_indexes_into_lists)
 
     for k, v in groups_persons.items():
         print(k, v)
 
-    #print(test_s['mfc'])
+    person = Person()
+    print(person.flag_old_data)
+
+    for keys_types, values_list in groups_persons.items():
+        for values in values_list:
+            for el in values:
+                # Если есть только старая фамилия
+                if el.startswith('<CPLSurname'):
+                    print(el)
+                    person.CPLSurname.append([el])
+                if el.startswith('<CPLName'):
+                    print(el)
+                    person.CPLName.append([el])
+                if el.startswith('<CPLPatronymic'):
+                    print(el)
+
+
+    print('person.CPSurname: ', person.CPSurname)
+    print('person.CPSurname: ', person.CPName)
+    print('person.CPLSurname: ', person.CPLSurname)
+    print('person.CPLSurname: ', person.CPLName)
+
+    person.check_old_data()
+    print(person.flag_old_data)
+    # Если ТЕГ SPL, ты выводим пытемся сновы вывести на экра предыдущую строку, но сравнивая тэги...,
+    # КАКие у нас старые данные?
+    #Новая фамиля = Старая фамилия?
+    # новая имя = новоия ? имя
