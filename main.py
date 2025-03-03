@@ -1,5 +1,14 @@
 from xml_tags import tags
+import re
 
+
+def cut_tag(tag):
+    """
+    Принимаем тег и его содержимое, удалям тег, возвращаем содержимое
+    :param tag:
+    :return: содержимое тега (без тега)
+    """
+    return re.sub(r"<.*?>", "", tag)
 
 class Person:
     """
@@ -31,7 +40,7 @@ class Person:
         if CPLSurname is None:
             self.CPLSurname = []
         else:
-            self.CPLSurname = list(CPSurname)
+            self.CPLSurname = list(CPLSurname)
         if CPLName is None:
             self.CPLName = []
         else:
@@ -54,6 +63,41 @@ class Person:
         if (len(self.CPLSurname) or len(self.CPLName) or len(self.CPLPatronymic)) > 0:
             self.flag_old_data = True
 
+    def set_CPSurname(self, first_surname):
+        """
+        Установить фамилию
+        """
+        self.CPSurname.append(cut_tag(first_surname))
+
+    def set_CPName(self, first_name):
+        """
+        Установить имя
+        """
+        self.CPName.append(cut_tag(first_name))
+
+    def set_CPPatronymic(self, first_patronymic):
+        """
+        Установить отчество
+        """
+        self.CPLPatronymic.append(cut_tag(first_patronymic))
+
+    def set_CPLSurname(self, last_surname):
+        """
+        Установить старые фамилии (возможно несколько)
+        """
+        self.CPLSurname.append(cut_tag(last_surname))
+
+    def set_CPLName(self, last_name):
+        """
+        Установить старые имена (возможно несколько)
+        """
+        self.CPLName.append(cut_tag(last_name))
+
+    def set_CPLPatronymic(self, last_patronymic):
+        """
+        Установить старые отчества (возможно несколько)
+        """
+        self.CPLPatronymic.append(cut_tag(last_patronymic))
 
 def open_and_strip_xml():
     """
@@ -150,24 +194,24 @@ def distribution_of_persons_by_groups(bind_xml_after_decomposing_by_indexes_into
 if __name__ == '__main__':
     # Открываем XML-файл
     xml_after_open_and_strip = open_and_strip_xml()
-    #print('xml_after_open_and_strip: ', xml_after_open_and_strip)
+    print('xml_after_open_and_strip: ', xml_after_open_and_strip)
 
     # Проверяем XML-файл
     check_xml(xml_after_open_and_strip)
 
     # Обрезаем XML-файл
     xml_after_cut = cut_xml(xml_after_open_and_strip, tags)
-    #print('xml_cut: ', xml_after_cut)
+    print('xml_cut: ', xml_after_cut)
 
     # Создаем список с индексами по обрезанному XML-файл по тегу <Applicant type=>
     xml_after_index: list[int] = index_xml(xml_after_cut)
-    #print('xml_after_index: ', xml_after_index)
+    print('xml_after_index: ', xml_after_index)
 
     # Создаем список списков, в каждом из которых уникальные лица со всем тегами, отфильтрованными до этого этапа
     xml_after_decomposing_by_indexes_into_lists = decomposing_xml_by_indexes_into_lists(xml_after_cut, xml_after_index)
 
-    #for el in xml_after_decomposing_by_indexes_into_lists:
-    #    print(el)
+    for el in xml_after_decomposing_by_indexes_into_lists:
+        print(el)
 
     #print('\n', '* ' * 50, '\n', 'Список [xml_after_cut] должен стать пустым: (НУЖЕН ТЕСТ?)', xml_after_cut, '\n', '* ' * 50)
 
@@ -183,21 +227,25 @@ if __name__ == '__main__':
     for keys_types, values_list in groups_persons.items():
         for values in values_list:
             for el in values:
-                # Если есть только старая фамилия
+                if el.startswith('<CPSurname'):
+                    pass
                 if el.startswith('<CPLSurname'):
                     print(el)
-                    person.CPLSurname.append([el])
+                    person.set_CPLSurname(el)
                 if el.startswith('<CPLName'):
                     print(el)
-                    person.CPLName.append([el])
+                    person.set_CPLName(el)
                 if el.startswith('<CPLPatronymic'):
                     print(el)
+                    person.set_CPLPatronymic(el)
+
 
 
     print('person.CPSurname: ', person.CPSurname)
-    print('person.CPSurname: ', person.CPName)
+    print('person.CPName: ', person.CPName)
     print('person.CPLSurname: ', person.CPLSurname)
-    print('person.CPLSurname: ', person.CPLName)
+    print('person.CPLName: ', person.CPLName)
+
 
     person.check_old_data()
     print(person.flag_old_data)
