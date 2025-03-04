@@ -10,6 +10,21 @@ def cut_tag(tag):
     """
     return re.sub(r"<.*?>", "", tag)
 
+def cut_date_birth(date_birth):
+    """
+    Принимаем тег CPBirthday и его содержимое в виде ДД.ММ.ГГГГ или ДД-ММ-ГГГГ, удалям тег, возвращаем только ГГГГ
+    :param tag:
+    :return: содержимое тега в виде ГГГГ
+    """
+
+    search_date = re.search(r'\d{4}$', date_birth)
+    if search_date:
+        return search_date.group(0)
+    else:
+        print(search_date)
+        raise SyntaxError("Ошибка. Неверный формат даты?")
+
+
 class Person:
     """
     Лицо с ФИО и Датой рождения, а также со старыми ФИО
@@ -23,6 +38,7 @@ class Person:
                  CPLPatronymic=None,    # Старое отчество
                  CPBirthday=None,       # Дата рождения (ДД.ММ.ГГГГ)
                  flag_old_data=False,   # Есть ли у лица старые ФИО? (по умолчанию нет)
+                 type_request=None,     # Тип обращений на сайт Гос. услуг (МФЦ | ЕПГУ | Физ лицо)
                  ):
 
         if CPSurname is None:
@@ -53,6 +69,10 @@ class Person:
             self.CPBirthday = []
         else:
             self.CPBirthday = list(CPBirthday)
+        if type_request is None:
+            self.type_request = []
+        else:
+            self.type_request = list(type_request)
 
         self.flag_old_data = flag_old_data
 
@@ -79,7 +99,7 @@ class Person:
         """
         Установить отчество
         """
-        self.CPLPatronymic.append(cut_tag(first_patronymic))
+        self.CPPatronymic.append(cut_tag(first_patronymic))
 
     def set_CPLSurname(self, last_surname):
         """
@@ -98,6 +118,19 @@ class Person:
         Установить старые отчества (возможно несколько)
         """
         self.CPLPatronymic.append(cut_tag(last_patronymic))
+
+    def set_CPBirthday(self, first_birthday):
+        """
+        Установить дату рождения в формате ГГГГ
+        """
+        self.CPBirthday.append(cut_date_birth(cut_tag(first_birthday)))
+
+    def set_type_request(self, type_req):
+        """
+        Установить старые фамилии (возможно несколько)
+        """
+        self.type_request.append(type_req)
+
 
 def open_and_strip_xml():
     """
@@ -209,6 +242,7 @@ if __name__ == '__main__':
 
     # Создаем список списков, в каждом из которых уникальные лица со всем тегами, отфильтрованными до этого этапа
     xml_after_decomposing_by_indexes_into_lists = decomposing_xml_by_indexes_into_lists(xml_after_cut, xml_after_index)
+    #print('xml_after_decomposing_by_indexes_into_lists: ', xml_after_decomposing_by_indexes_into_lists)
 
     for el in xml_after_decomposing_by_indexes_into_lists:
         print(el)
@@ -216,39 +250,89 @@ if __name__ == '__main__':
     #print('\n', '* ' * 50, '\n', 'Список [xml_after_cut] должен стать пустым: (НУЖЕН ТЕСТ?)', xml_after_cut, '\n', '* ' * 50)
 
     # Группируем лиц в словарь по видам заявлений (ЕПГУ, МФЦ, Физ лицо)
-    groups_persons: dict[str, list] = distribution_of_persons_by_groups(xml_after_decomposing_by_indexes_into_lists)
+    #groups_persons: dict[str, list] = distribution_of_persons_by_groups(xml_after_decomposing_by_indexes_into_lists)
 
-    for k, v in groups_persons.items():
-        print(k, v)
+    #for k, v in groups_persons.items():
+    #    print(k, v)
 
-    person = Person()
-    print(person.flag_old_data)
+    for line in xml_after_decomposing_by_indexes_into_lists:
+        print('----------------------')
+        person = Person()
+        for el in line:
+            # print(person.flag_old_data)
+            if el.startswith('<Applicant type="Единый портал гос.услуг"'):
+                # print(el)
+                person.set_type_request('ЕПГУ')
+            if el.startswith('<CPSurname'):
+                # print(el)
+                person.set_CPSurname(el)
+            if el.startswith('<CPName'):
+                # print(el)
+                person.set_CPName(el)
+            if el.startswith('<CPPatronymic'):
+                # print(el)
+                person.set_CPPatronymic(el)
+            if el.startswith('<CPLSurname'):
+                # print(el)
+                person.set_CPLSurname(el)
+            if el.startswith('<CPLName'):
+                # print(el)
+                person.set_CPLName(el)
+            if el.startswith('<CPLPatronymic'):
+                # print(el)
+                person.set_CPLPatronymic(el)
+            if el.startswith('<CPBirthday'):
+                # print(el)
+                person.set_CPBirthday(el)
 
+        print('person.type_request: ', person.type_request)
+        print('person.CPSurname: ', person.CPSurname)
+        print('person.CPName: ', person.CPName)
+        print('person.CPPatronymic: ', person.CPPatronymic)
+        print('person.CPLSurname: ', person.CPLSurname)
+        print('person.CPLName: ', person.CPLName)
+        print('person.CPLPatronymic: ', person.CPLPatronymic)
+        print('person.CPBirthday: ', person.CPBirthday)
+
+    """
     for keys_types, values_list in groups_persons.items():
         for values in values_list:
+            person = Person()
+            #print(person.flag_old_data)
+            print('----------------------')
             for el in values:
                 if el.startswith('<CPSurname'):
-                    pass
+                    #print(el)
+                    person.set_CPSurname(el)
+                if el.startswith('<CPName'):
+                    #print(el)
+                    person.set_CPName(el)
+                if el.startswith('<CPPatronymic'):
+                    #print(el)
+                    person.set_CPPatronymic(el)
                 if el.startswith('<CPLSurname'):
-                    print(el)
+                    #print(el)
                     person.set_CPLSurname(el)
                 if el.startswith('<CPLName'):
-                    print(el)
+                    #print(el)
                     person.set_CPLName(el)
                 if el.startswith('<CPLPatronymic'):
-                    print(el)
+                    #print(el)
                     person.set_CPLPatronymic(el)
+                if el.startswith('<CPBirthday'):
+                    #print(el)
+                    person.set_CPBirthday(el)
 
-
-
-    print('person.CPSurname: ', person.CPSurname)
-    print('person.CPName: ', person.CPName)
-    print('person.CPLSurname: ', person.CPLSurname)
-    print('person.CPLName: ', person.CPLName)
-
-
-    person.check_old_data()
-    print(person.flag_old_data)
+            print('person.CPSurname: ',      person.CPSurname)
+            print('person.CPName: ',         person.CPName)
+            print('person.CPPatronymic: ',   person.CPPatronymic)
+            print('person.CPLSurname: ',     person.CPLSurname)
+            print('person.CPLName: ',        person.CPLName)
+            print('person.CPLPatronymic: ',  person.CPLPatronymic)
+            print('person.CPBirthday: ',     person.CPBirthday)
+    """
+            #person.check_old_data()
+            #print(person.flag_old_data)
     # Если ТЕГ SPL, ты выводим пытемся сновы вывести на экра предыдущую строку, но сравнивая тэги...,
     # КАКие у нас старые данные?
     #Новая фамиля = Старая фамилия?
