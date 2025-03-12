@@ -232,8 +232,8 @@ if __name__ == '__main__':
     xml_after_decomposing_by_indexes_into_lists = decomposing_xml_by_indexes_into_lists(xml_after_cut, xml_after_index)
     #print('xml_after_decomposing_by_indexes_into_lists: ', xml_after_decomposing_by_indexes_into_lists)
 
-    for el in xml_after_decomposing_by_indexes_into_lists:
-        print(el)
+    #for el in xml_after_decomposing_by_indexes_into_lists:
+    #    print(el)
 
     #print('\n', '* ' * 50, '\n', 'Список [xml_after_cut] должен стать пустым: (НУЖЕН ТЕСТ?)', xml_after_cut, '\n', '* ' * 50)
 
@@ -321,10 +321,16 @@ if __name__ == '__main__':
                             for el in prs.CPBirthday:
                                 print(el)
 
-
             #### Если у лица есть только старая Фимилия
             elif len(prs.CPLSurname) > 0:
                 for el in prs.CPLSurname:
-                    print(el)
+                    print(el, end=';')
+                    for el in prs.CPName:
+                        print(el, end=';')
+                        for el in prs.CPPatronymic:
+                            print(el, end=';')
+                            for el in prs.CPBirthday:
+                                print(el, ';;', sep='')
+
         #person.check_old_data()
         #print(person.flag_old_data)
