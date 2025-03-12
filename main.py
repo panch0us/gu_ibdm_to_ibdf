@@ -2,7 +2,7 @@ from xml_tags import tags
 import re
 
 
-def cut_and_lower_tag(tag):
+def cut_tag_and_lower_text(tag):
     """
     Принимаем тег и его содержимое, удалям тег, переводим содержимое в нижний регистр, возвращаем содержимое
     :param tag:
@@ -78,43 +78,43 @@ class Person:
         """
         Установить фамилию
         """
-        self.CPSurname.append(cut_and_lower_tag(first_surname))
+        self.CPSurname.append(cut_tag_and_lower_text(first_surname))
 
     def set_CPName(self, first_name):
         """
         Установить имя
         """
-        self.CPName.append(cut_and_lower_tag(first_name))
+        self.CPName.append(cut_tag_and_lower_text(first_name))
 
     def set_CPPatronymic(self, first_patronymic):
         """
         Установить отчество
         """
-        self.CPPatronymic.append(cut_and_lower_tag(first_patronymic))
+        self.CPPatronymic.append(cut_tag_and_lower_text(first_patronymic))
 
     def set_CPLSurname(self, last_surname):
         """
         Установить старые фамилии (возможно несколько)
         """
-        self.CPLSurname.append(cut_and_lower_tag(last_surname))
+        self.CPLSurname.append(cut_tag_and_lower_text(last_surname))
 
     def set_CPLName(self, last_name):
         """
         Установить старые имена (возможно несколько)
         """
-        self.CPLName.append(cut_and_lower_tag(last_name))
+        self.CPLName.append(cut_tag_and_lower_text(last_name))
 
     def set_CPLPatronymic(self, last_patronymic):
         """
         Установить старые отчества (возможно несколько)
         """
-        self.CPLPatronymic.append(cut_and_lower_tag(last_patronymic))
+        self.CPLPatronymic.append(cut_tag_and_lower_text(last_patronymic))
 
     def set_CPBirthday(self, first_birthday):
         """
         Установить дату рождения в формате ГГГГ
         """
-        self.CPBirthday.append(cut_date_birth(cut_and_lower_tag(first_birthday)))
+        self.CPBirthday.append(cut_date_birth(cut_tag_and_lower_text(first_birthday)))
 
     def set_type_request(self, type_req):
         """
@@ -200,7 +200,7 @@ def add_person_to_list(bind_xml_after_decomposing_by_indexes_into_lists):
     """
     _persons = list()
     for line in bind_xml_after_decomposing_by_indexes_into_lists:
-        print('----------------------')
+        #print('----------------------')
 
         person = Person()
         for el in line:
@@ -225,7 +225,7 @@ def add_person_to_list(bind_xml_after_decomposing_by_indexes_into_lists):
             if el.startswith('<CPBirthday'):
                 person.set_CPBirthday(el)
         _persons.append(person)
-
+        """
         print('person.type_request: ', person.type_request)
         print('person.CPSurname: ', person.CPSurname)
         print('person.CPName: ', person.CPName)
@@ -234,8 +234,79 @@ def add_person_to_list(bind_xml_after_decomposing_by_indexes_into_lists):
         print('person.CPLName: ', person.CPLName)
         print('person.CPLPatronymic: ', person.CPLPatronymic)
         print('person.CPBirthday: ', person.CPBirthday)
-
+        """
     return _persons
+
+def create_text(bind_persons: list[Person]):
+    """
+    Создает итоговый текст с нужным форматом фамилия;имя;отчество;чч;мм;гггг;;
+    :param bind_persons: список лиц
+    :return: итоговый текст
+    """
+
+    _text = ''
+
+    for prs in bind_persons:
+        #### Если у лица есть Фамилия или Имя или Отчество (нет старых ФИО)
+        for el in prs.CPSurname:
+            #print(el, end=';')
+            _text = _text + el + ';'
+        for el in prs.CPName:
+            #print(el, end=';')
+            _text = _text + el + ';'
+        for el in prs.CPPatronymic:
+            #print(el, end=';')
+            _text = _text + el + ';'
+        for el in prs.CPBirthday:
+            #print(el, ';;', sep='')
+            _text = _text + el + ';;\n'
+
+        #### Если у лица есть старые Фамилия, Имя и Отчество
+        if len(prs.CPLSurname) > 0 and len(prs.CPLName) > 0 and len(prs.CPLPatronymic) > 0:
+            for el in prs.CPLSurname:
+                #print(el, end=';')
+                _text = _text + el + ';'
+                for el in prs.CPLName:
+                    #print(el, end=';')
+                    _text = _text + el + ';'
+                    for el in prs.CPLPatronymic:
+                        #print(el, end=';')
+                        _text = _text + el + ';'
+                        for el in prs.CPBirthday:
+                            #print(el, ';;', sep='')
+                            _text = _text + el + ';\n'
+
+        #### Если у лица есть только старые Фамилия и Имя
+        elif len(prs.CPLSurname) > 0 and len(prs.CPLName) > 0:
+            for el in prs.CPLSurname:
+                #print(el, end=';')
+                _text = _text + el + ';'
+                for el in prs.CPLName:
+                    #print(el, end=';')
+                    _text = _text + el + ';'
+                    for el in prs.CPPatronymic:
+                        #print(el, end=';')
+                        _text = _text + el + ';'
+                        for el in prs.CPBirthday:
+                            #print(el, ';;', sep='')
+                            _text = _text + el + ';;\n'
+
+        #### Если у лица есть только старая Фамилия
+        elif len(prs.CPLSurname) > 0:
+            for el in prs.CPLSurname:
+                #print(el, end=';')
+                _text = _text + el + ';'
+                for el in prs.CPName:
+                    #print(el, end=';')
+                    _text = _text + el + ';'
+                    for el in prs.CPPatronymic:
+                        #print(el, end=';')
+                        _text = _text + el + ';'
+                        for el in prs.CPBirthday:
+                            #print(el, ';;', sep='')
+                            _text = _text + el + ';\n'
+
+    return _text
 
 
 if __name__ == '__main__':
@@ -264,50 +335,9 @@ if __name__ == '__main__':
     #print('\n', '* ' * 50, '\n', 'Список [xml_after_cut] должен стать пустым: (НУЖЕН ТЕСТ?)', xml_after_cut, '\n', '* ' * 50)
 
     # Создаем список лиц
-    persons = add_person_to_list(xml_after_decomposing_by_indexes_into_lists)
+    persons: list[Person] = add_person_to_list(xml_after_decomposing_by_indexes_into_lists)
 
-    print('--------')
+    text = create_text(persons)
 
-    for prs in persons:
-        #### Если у лица есть Фамилия или Имя или Отчество (нет старых ФИО)
-        for el in prs.CPSurname:
-            print(el, end=';')
-        for el in prs.CPName:
-            print(el, end=';')
-        for el in prs.CPPatronymic:
-            print(el, end=';')
-        for el in prs.CPBirthday:
-            print(el, ';;', sep='')
-
-        #### Если у лица есть старые Фамилия, Имя и Отчество
-        if len(prs.CPLSurname) > 0 and len(prs.CPLName) > 0 and len(prs.CPLPatronymic) > 0:
-            for el in prs.CPLSurname:
-                print(el, end=';')
-                for el in prs.CPLName:
-                    print(el, end=';')
-                    for el in prs.CPLPatronymic:
-                        print(el, end=';')
-                        for el in prs.CPBirthday:
-                            print(el, ';;', sep='')
-
-        #### Если у лица есть только старые Фамилия и Имя
-        elif len(prs.CPLSurname) > 0 and len(prs.CPLName) > 0:
-            for el in prs.CPLSurname:
-                print(el, end=';')
-                for el in prs.CPLName:
-                    print(el, end=';')
-                    for el in prs.CPPatronymic:
-                        print(el, end=';')
-                        for el in prs.CPBirthday:
-                            print(el)
-
-        #### Если у лица есть только старая Фамилия
-        elif len(prs.CPLSurname) > 0:
-            for el in prs.CPLSurname:
-                print(el, end=';')
-                for el in prs.CPName:
-                    print(el, end=';')
-                    for el in prs.CPPatronymic:
-                        print(el, end=';')
-                        for el in prs.CPBirthday:
-                            print(el, ';;', sep='')
+    print('--TEXT--')
+    print(text)
