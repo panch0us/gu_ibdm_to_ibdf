@@ -2,13 +2,13 @@ from xml_tags import tags
 import re
 
 
-def cut_tag(tag):
+def cut_and_lower_tag(tag):
     """
-    Принимаем тег и его содержимое, удалям тег, возвращаем содержимое
+    Принимаем тег и его содержимое, удалям тег, переводим содержимое в нижний регистр, возвращаем содержимое
     :param tag:
-    :return: содержимое тега (без тега)
+    :return: содержимое тега в нижнем регистре (без тега)
     """
-    return re.sub(r"<.*?>", "", tag)
+    return re.sub(r"<.*?>", "", tag).lower()
 
 def cut_date_birth(date_birth):
     """
@@ -37,7 +37,6 @@ class Person:
                  CPLName=None,          # Старое имя
                  CPLPatronymic=None,    # Старое отчество
                  CPBirthday=None,       # Дата рождения (ДД.ММ.ГГГГ)
-                 flag_old_data=False,   # Есть ли у лица старые ФИО? (по умолчанию нет)
                  type_request=None,     # Тип обращений на сайт государственных услуг (МФЦ | ЕПГУ | Физ лицо)
                  ):
 
@@ -74,56 +73,48 @@ class Person:
         else:
             self.type_request = list(type_request)
 
-        self.flag_old_data = flag_old_data
-
-    def check_old_data(self):
-        """
-        Если есть старые ФИО - то флаг ставится в True
-        """
-        if (len(self.CPLSurname) or len(self.CPLName) or len(self.CPLPatronymic)) > 0:
-            self.flag_old_data = True
 
     def set_CPSurname(self, first_surname):
         """
         Установить фамилию
         """
-        self.CPSurname.append(cut_tag(first_surname))
+        self.CPSurname.append(cut_and_lower_tag(first_surname))
 
     def set_CPName(self, first_name):
         """
         Установить имя
         """
-        self.CPName.append(cut_tag(first_name))
+        self.CPName.append(cut_and_lower_tag(first_name))
 
     def set_CPPatronymic(self, first_patronymic):
         """
         Установить отчество
         """
-        self.CPPatronymic.append(cut_tag(first_patronymic))
+        self.CPPatronymic.append(cut_and_lower_tag(first_patronymic))
 
     def set_CPLSurname(self, last_surname):
         """
         Установить старые фамилии (возможно несколько)
         """
-        self.CPLSurname.append(cut_tag(last_surname))
+        self.CPLSurname.append(cut_and_lower_tag(last_surname))
 
     def set_CPLName(self, last_name):
         """
         Установить старые имена (возможно несколько)
         """
-        self.CPLName.append(cut_tag(last_name))
+        self.CPLName.append(cut_and_lower_tag(last_name))
 
     def set_CPLPatronymic(self, last_patronymic):
         """
         Установить старые отчества (возможно несколько)
         """
-        self.CPLPatronymic.append(cut_tag(last_patronymic))
+        self.CPLPatronymic.append(cut_and_lower_tag(last_patronymic))
 
     def set_CPBirthday(self, first_birthday):
         """
         Установить дату рождения в формате ГГГГ
         """
-        self.CPBirthday.append(cut_date_birth(cut_tag(first_birthday)))
+        self.CPBirthday.append(cut_date_birth(cut_and_lower_tag(first_birthday)))
 
     def set_type_request(self, type_req):
         """
@@ -278,46 +269,45 @@ if __name__ == '__main__':
     print('--------')
 
     for prs in persons:
-        if prs.flag_old_data:
-            pass
-        else:
-            for el in prs.CPSurname:
-                print(el, end=';')
-            for el in prs.CPName:
-                print(el, end=';')
-            for el in prs.CPPatronymic:
-                print(el, end=';')
-            for el in prs.CPBirthday:
-                print(el)
-            #### Если у лица есть старые Фимилия Имя и Отчество
-            if len(prs.CPLSurname) > 0 and len(prs.CPLName) > 0 and len(prs.CPLPatronymic) > 0:
-                for el in prs.CPLSurname:
-                    print(el, end=';')
-                    for el in prs.CPLName:
-                        print(el, end=';')
-                        for el in prs.CPLPatronymic:
-                            print(el, end=';')
-                            for el in prs.CPBirthday:
-                                print(el, ';;', sep='')
+        #### Если у лица есть Фамилия или Имя или Отчество (нет старых ФИО)
+        for el in prs.CPSurname:
+            print(el, end=';')
+        for el in prs.CPName:
+            print(el, end=';')
+        for el in prs.CPPatronymic:
+            print(el, end=';')
+        for el in prs.CPBirthday:
+            print(el, ';;', sep='')
 
-            #### Если у лица есть только старые Фимилия и Имя
-            elif len(prs.CPLSurname) > 0 and len(prs.CPLName) > 0:
-                for el in prs.CPLSurname:
+        #### Если у лица есть старые Фамилия, Имя и Отчество
+        if len(prs.CPLSurname) > 0 and len(prs.CPLName) > 0 and len(prs.CPLPatronymic) > 0:
+            for el in prs.CPLSurname:
+                print(el, end=';')
+                for el in prs.CPLName:
                     print(el, end=';')
-                    for el in prs.CPLName:
+                    for el in prs.CPLPatronymic:
                         print(el, end=';')
-                        for el in prs.CPPatronymic:
-                            print(el, end=';')
-                            for el in prs.CPBirthday:
-                                print(el)
+                        for el in prs.CPBirthday:
+                            print(el, ';;', sep='')
 
-            #### Если у лица есть только старая Фимилия
-            elif len(prs.CPLSurname) > 0:
-                for el in prs.CPLSurname:
+        #### Если у лица есть только старые Фамилия и Имя
+        elif len(prs.CPLSurname) > 0 and len(prs.CPLName) > 0:
+            for el in prs.CPLSurname:
+                print(el, end=';')
+                for el in prs.CPLName:
                     print(el, end=';')
-                    for el in prs.CPName:
+                    for el in prs.CPPatronymic:
                         print(el, end=';')
-                        for el in prs.CPPatronymic:
-                            print(el, end=';')
-                            for el in prs.CPBirthday:
-                                print(el, ';;', sep='')
+                        for el in prs.CPBirthday:
+                            print(el)
+
+        #### Если у лица есть только старая Фамилия
+        elif len(prs.CPLSurname) > 0:
+            for el in prs.CPLSurname:
+                print(el, end=';')
+                for el in prs.CPName:
+                    print(el, end=';')
+                    for el in prs.CPPatronymic:
+                        print(el, end=';')
+                        for el in prs.CPBirthday:
+                            print(el, ';;', sep='')
