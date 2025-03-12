@@ -13,7 +13,7 @@ def cut_tag(tag):
 def cut_date_birth(date_birth):
     """
     Принимаем тег CPBirthday и его содержимое в виде ДД.ММ.ГГГГ или ДД-ММ-ГГГГ, удалям тег, возвращаем только ГГГГ
-    :param tag:
+    :param date_birth:
     :return: содержимое тега в виде ГГГГ
     """
 
@@ -201,15 +201,50 @@ def decomposing_xml_by_indexes_into_lists(bind_xml_after_cut, bind_xml_after_ind
     _xml_after_decomposing_by_indexes_into_lists = _xml_after_decomposing_by_indexes_into_lists[::-1]
     return _xml_after_decomposing_by_indexes_into_lists
 
-def add_person_to_list(prsn: Person):
+def add_person_to_list(bind_xml_after_decomposing_by_indexes_into_lists):
     """
-    Добавить объект person в список
-    :param prsn:
-    :return:
+    Добавляем всех лиц в единый список
+    :param bind_xml_after_decomposing_by_indexes_into_lists:
+    :return: список лиц
     """
-    _list_persons = []
-    _list_persons.append(prsn)
-    return _list_persons
+    _persons = list()
+    for line in bind_xml_after_decomposing_by_indexes_into_lists:
+        print('----------------------')
+
+        person = Person()
+        for el in line:
+            if el.startswith('<Applicant type="Единый портал гос.услуг"'):
+                person.set_type_request('ЕПГУ')
+            if el.startswith('<Applicant type="МФЦ"'):
+                person.set_type_request('МФЦ')
+            if el.startswith('<Applicant type="Физическое лицо"'):
+                person.set_type_request('ФЛ')
+            if el.startswith('<CPSurname'):
+                person.set_CPSurname(el)
+            if el.startswith('<CPName'):
+                person.set_CPName(el)
+            if el.startswith('<CPPatronymic'):
+                person.set_CPPatronymic(el)
+            if el.startswith('<CPLSurname'):
+                person.set_CPLSurname(el)
+            if el.startswith('<CPLName'):
+                person.set_CPLName(el)
+            if el.startswith('<CPLPatronymic'):
+                person.set_CPLPatronymic(el)
+            if el.startswith('<CPBirthday'):
+                person.set_CPBirthday(el)
+        _persons.append(person)
+
+        print('person.type_request: ', person.type_request)
+        print('person.CPSurname: ', person.CPSurname)
+        print('person.CPName: ', person.CPName)
+        print('person.CPPatronymic: ', person.CPPatronymic)
+        print('person.CPLSurname: ', person.CPLSurname)
+        print('person.CPLName: ', person.CPLName)
+        print('person.CPLPatronymic: ', person.CPLPatronymic)
+        print('person.CPBirthday: ', person.CPBirthday)
+
+    return _persons
 
 
 if __name__ == '__main__':
@@ -237,56 +272,11 @@ if __name__ == '__main__':
 
     #print('\n', '* ' * 50, '\n', 'Список [xml_after_cut] должен стать пустым: (НУЖЕН ТЕСТ?)', xml_after_cut, '\n', '* ' * 50)
 
-    persons = []
-    for line in xml_after_decomposing_by_indexes_into_lists:
-        print('----------------------')
-
-        person = Person()
-        for el in line:
-            #print(person.flag_old_data)
-            if el.startswith('<Applicant type="Единый портал гос.услуг"'):
-                # print(el)
-                person.set_type_request('ЕПГУ')
-            if el.startswith('<Applicant type="МФЦ"'):
-                # print(el)
-                person.set_type_request('МФЦ')
-            if el.startswith('<Applicant type="Физическое лицо"'):
-                # print(el)
-                person.set_type_request('ФЛ')
-            if el.startswith('<CPSurname'):
-                # print(el)
-                person.set_CPSurname(el)
-            if el.startswith('<CPName'):
-                # print(el)
-                person.set_CPName(el)
-            if el.startswith('<CPPatronymic'):
-                # print(el)
-                person.set_CPPatronymic(el)
-            if el.startswith('<CPLSurname'):
-                # print(el)
-                person.set_CPLSurname(el)
-            if el.startswith('<CPLName'):
-                # print(el)
-                person.set_CPLName(el)
-            if el.startswith('<CPLPatronymic'):
-                # print(el)
-                person.set_CPLPatronymic(el)
-            if el.startswith('<CPBirthday'):
-                # print(el)
-                person.set_CPBirthday(el)
-
-        persons.append(person)
-
-        print('person.type_request: ',  person.type_request)
-        print('person.CPSurname: ',     person.CPSurname)
-        print('person.CPName: ',        person.CPName)
-        print('person.CPPatronymic: ',  person.CPPatronymic)
-        print('person.CPLSurname: ',    person.CPLSurname)
-        print('person.CPLName: ',       person.CPLName)
-        print('person.CPLPatronymic: ', person.CPLPatronymic)
-        print('person.CPBirthday: ',    person.CPBirthday)
+    # Создаем список лиц
+    persons = add_person_to_list(xml_after_decomposing_by_indexes_into_lists)
 
     print('--------')
+
     for prs in persons:
         if prs.flag_old_data:
             pass
@@ -331,6 +321,3 @@ if __name__ == '__main__':
                             print(el, end=';')
                             for el in prs.CPBirthday:
                                 print(el, ';;', sep='')
-
-        #person.check_old_data()
-        #print(person.flag_old_data)
