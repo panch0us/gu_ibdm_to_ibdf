@@ -129,7 +129,7 @@ def open_and_strip_xml():
     # список для обработки исходного xml-файла (без пробелов слева и справа)
     _xml_after_strip = []
     # открываем xml-файл в формате utf-8
-    with open('Запросы от 20250113155643.xml', 'r', encoding='utf-8') as xml_input:
+    with open('Запросы от 20250128113443.xml', 'r', encoding='utf-8') as xml_input:
         # читаем xml-файл построчно
         for line in xml_input:
             # берем каждую строку исходного xml-файла и удаляем лишние пробелы слева и справа
@@ -196,7 +196,7 @@ def add_person_to_list(bind_xml_after_decomposing_by_indexes_into_lists):
     :param bind_xml_after_decomposing_by_indexes_into_lists:
     :return: список лиц
     """
-    _persons = list()
+    #_persons = list()
     _persons_dict = {'ЕПГУ': [], 'МФЦ': [], 'ФЛ': []}
     #print(_persons_dict)
     for line in bind_xml_after_decomposing_by_indexes_into_lists:
@@ -230,7 +230,7 @@ def add_person_to_list(bind_xml_after_decomposing_by_indexes_into_lists):
             _persons_dict['МФЦ'].append(person)
         if person.type_request == ['ФЛ']:
             _persons_dict['ФЛ'].append(person)
-        _persons.append(person)
+        #_persons.append(person)
         """
         print('person.type_request: ', person.type_request)
         print('person.CPSurname: ', person.CPSurname)
@@ -241,7 +241,7 @@ def add_person_to_list(bind_xml_after_decomposing_by_indexes_into_lists):
         print('person.CPLPatronymic: ', person.CPLPatronymic)
         print('person.CPBirthday: ', person.CPBirthday)
         """
-    return _persons, _persons_dict
+    return _persons_dict
 
 def create_texts(bind_persons):
     """
@@ -340,8 +340,7 @@ if __name__ == '__main__':
     #print('\n', '* ' * 50, '\n', 'Список [xml_after_cut] должен стать пустым: (НУЖЕН ТЕСТ?)', xml_after_cut, '\n', '* ' * 50)
 
     # Создаем список лиц
-    persons, persons_dict = add_person_to_list(xml_after_decomposing_by_indexes_into_lists)
-    #print(persons_dict)
+    persons_dict = add_person_to_list(xml_after_decomposing_by_indexes_into_lists)
 
     # РАЗДЕЛИТЬ ПЕРСОНЫ НА 3 СПИСКА, по ЕПГУ, МФЦ И ФЛ... ЧЕРЕЗ СЛОВАРЬ?
     # Если ключ ЕПГУ - то закинуть значение (список) в функцию reate_texts
@@ -352,11 +351,13 @@ if __name__ == '__main__':
     text_mfc  = ''
 
     for key, value in persons_dict.items():
-        if key == 'ЕПГУ':
-            print(persons_dict['ЕПГУ'])
+        if key == 'ЕПГУ' and len(value) > 0:
             text_epgu = create_texts(persons_dict['ЕПГУ'])
+        if key == 'МФЦ' and len(value) > 0:
+            text_mfc = create_texts(persons_dict['МФЦ'])
+        if key == 'ФЛ' and len(value) > 0:
+            text_fl = create_texts(persons_dict['ФЛ'])
 
-    text = create_texts(persons)
-
-    print('--TEXT--')
-    print(text_epgu)
+    print('text_epgu: \n', text_epgu, sep='')
+    print('text_mfc: \n', text_mfc, sep='')
+    print('text_fl: \n', text_fl, sep='')
