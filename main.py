@@ -24,7 +24,6 @@ def cut_date_birth(date_birth):
         print(search_date)
         raise SyntaxError("Ошибка. Неверный формат даты?")
 
-
 class Person:
     """
     Лицо с ФИО и Датой рождения, а также со старыми ФИО
@@ -122,7 +121,6 @@ class Person:
         """
         self.type_request.append(type_req)
 
-
 def open_and_strip_xml():
     """
     Открывает xml-файл. Удаляет лишние пробелы слева и справа в каждой строке.
@@ -199,6 +197,8 @@ def add_person_to_list(bind_xml_after_decomposing_by_indexes_into_lists):
     :return: список лиц
     """
     _persons = list()
+    _persons_dict = {'ЕПГУ': [], 'МФЦ': [], 'ФЛ': []}
+    #print(_persons_dict)
     for line in bind_xml_after_decomposing_by_indexes_into_lists:
         #print('----------------------')
 
@@ -224,6 +224,12 @@ def add_person_to_list(bind_xml_after_decomposing_by_indexes_into_lists):
                 person.set_CPLPatronymic(el)
             if el.startswith('<CPBirthday'):
                 person.set_CPBirthday(el)
+        if person.type_request == ['ЕПГУ']:
+            _persons_dict['ЕПГУ'].append(person)
+        if person.type_request == ['МФЦ']:
+            _persons_dict['МФЦ'].append(person)
+        if person.type_request == ['ФЛ']:
+            _persons_dict['ФЛ'].append(person)
         _persons.append(person)
         """
         print('person.type_request: ', person.type_request)
@@ -235,9 +241,9 @@ def add_person_to_list(bind_xml_after_decomposing_by_indexes_into_lists):
         print('person.CPLPatronymic: ', person.CPLPatronymic)
         print('person.CPBirthday: ', person.CPBirthday)
         """
-    return _persons
+    return _persons, _persons_dict
 
-def create_text(bind_persons: list[Person]):
+def create_texts(bind_persons):
     """
     Создает итоговый текст с нужным форматом фамилия;имя;отчество;чч;мм;гггг;;
     :param bind_persons: список лиц
@@ -274,7 +280,7 @@ def create_text(bind_persons: list[Person]):
                         _text = _text + el + ';'
                         for el in prs.CPBirthday:
                             #print(el, ';;', sep='')
-                            _text = _text + el + ';\n'
+                            _text = _text + el + ';;\n'
 
         #### Если у лица есть только старые Фамилия и Имя
         elif len(prs.CPLSurname) > 0 and len(prs.CPLName) > 0:
@@ -304,8 +310,7 @@ def create_text(bind_persons: list[Person]):
                         _text = _text + el + ';'
                         for el in prs.CPBirthday:
                             #print(el, ';;', sep='')
-                            _text = _text + el + ';\n'
-
+                            _text = _text + el + ';;\n'
     return _text
 
 
@@ -335,9 +340,23 @@ if __name__ == '__main__':
     #print('\n', '* ' * 50, '\n', 'Список [xml_after_cut] должен стать пустым: (НУЖЕН ТЕСТ?)', xml_after_cut, '\n', '* ' * 50)
 
     # Создаем список лиц
-    persons: list[Person] = add_person_to_list(xml_after_decomposing_by_indexes_into_lists)
+    persons, persons_dict = add_person_to_list(xml_after_decomposing_by_indexes_into_lists)
+    #print(persons_dict)
 
-    text = create_text(persons)
+    # РАЗДЕЛИТЬ ПЕРСОНЫ НА 3 СПИСКА, по ЕПГУ, МФЦ И ФЛ... ЧЕРЕЗ СЛОВАРЬ?
+    # Если ключ ЕПГУ - то закинуть значение (список) в функцию reate_texts
+
+    # распределение текста
+    text_epgu = ''
+    text_fl   = ''
+    text_mfc  = ''
+
+    for key, value in persons_dict.items():
+        if key == 'ЕПГУ':
+            print(persons_dict['ЕПГУ'])
+            text_epgu = create_texts(persons_dict['ЕПГУ'])
+
+    text = create_texts(persons)
 
     print('--TEXT--')
-    print(text)
+    print(text_epgu)
