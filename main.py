@@ -129,7 +129,7 @@ def open_and_strip_xml():
     # список для обработки исходного xml-файла (без пробелов слева и справа)
     _xml_after_strip = []
     # открываем xml-файл в формате utf-8
-    with open('Запросы от 20250128113443.xml', 'r', encoding='utf-8') as xml_input:
+    with open('Запросы от 20250113155643.xml', 'r', encoding='utf-8') as xml_input:
         # читаем xml-файл построчно
         for line in xml_input:
             # берем каждую строку исходного xml-файла и удаляем лишние пробелы слева и справа
@@ -162,6 +162,16 @@ def cut_xml(bind_xml_after_strip, bind_tags):
             for el in bind_xml_after_strip
                 for tag in bind_tags
                     if el.startswith(tag)]
+
+def split_tag_into_parts():
+    """
+    Продумать, как в самом XML-файле разъединить такой тег: <CPLSurname> Иванов ,  Петров </CPLSurname>
+    на два таких тега:
+    <CPLSurname>Иванов</CPLSurname>
+    <CPLSurname>Петров</CPLSurname>
+    :return:
+    """
+    pass
 
 def index_xml(bind_xml_cut) -> list[int]:
     """
@@ -337,14 +347,14 @@ def classify_text_by_query_type():
 if __name__ == '__main__':
     # Открываем XML-файл
     xml_after_open_and_strip = open_and_strip_xml()
-    #print('xml_after_open_and_strip: ', xml_after_open_and_strip)
+    print('xml_after_open_and_strip: ', xml_after_open_and_strip)
 
     # Проверяем XML-файл
     check_xml(xml_after_open_and_strip)
 
     # Обрезаем XML-файл
     xml_after_cut = cut_xml(xml_after_open_and_strip, tags)
-    #print('xml_cut: ', xml_after_cut)
+    print('xml_cut: ', xml_after_cut)
 
     # Создаем список с индексами по обрезанному XML-файл по тегу <Applicant type=>
     xml_after_index: list[int] = index_xml(xml_after_cut)
@@ -359,7 +369,7 @@ if __name__ == '__main__':
 
     #print('\n', '* ' * 50, '\n', 'Список [xml_after_cut] должен стать пустым: (НУЖЕН ТЕСТ?)', xml_after_cut, '\n', '* ' * 50)
 
-    # Создаем список лиц
+    # Создаем словарь с группами (тип заявления: список лиц)
     persons_dict = add_person_to_dict(xml_after_decomposing_by_indexes_into_lists)
 
     # Распределение итогового текста на 3 группы (ЕПГУ | Физ лицо | МФЦ)
