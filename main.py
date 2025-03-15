@@ -163,24 +163,48 @@ def cut_xml(bind_xml_after_strip, bind_tags):
                 for tag in bind_tags
                     if el.startswith(tag)]
 
-def split_tag_into_parts():
+def split_tag_into_parts(bind_xml_after_cut):
     """
-    Продумать, как в самом XML-файле разъединить такой тег: <CPLSurname> Иванов ,  Петров </CPLSurname>
+    Продумать, как в самом XML-файле разъединить такой тег: <CP*> Иванов ,  Петров </CPL*>
     на два таких тега:
-    <CPLSurname>Иванов</CPLSurname>
-    <CPLSurname>Петров</CPLSurname>
+    <CP*>Иванов</CP*>
+    <CP*>Петров</CP*>
     :return:
     """
-    pass
+    # Регулярное выражение для поиска тегов, начинающихся на <CP и заканчивающихся на </CP
+    pattern = r"(<CP[^>]+>)(.*?)(</CP[^>]+>)"
 
-def index_xml(bind_xml_cut) -> list[int]:
+    _new_list = bind_xml_after_cut
+
+    for en, line in enumerate(_new_list):
+        if line.startswith('<CP') and ',' in line:
+            print('!' * 10 + line + '\n')
+            my_match = re.search(pattern, line)
+
+            if my_match:
+                # Извлекаем открывающий тег, содержимое и закрывающий тег
+                open_tag, content, close_tag = my_match.groups()
+
+                # Разделяем содержимое по запятой
+                parts = [part.strip() for part in content.split(",")]
+
+                # Формируем новые строки
+                output_strings = [f"{open_tag}{part}{close_tag}" for part in parts]
+
+                _new_list[en:en+1] = output_strings
+            else:
+                print("Теги не найдены.")
+
+    return _new_list
+
+def index_xml(bind_xml_after_cut) -> list[int]:
     """
     По обрезанному XML-файлу находим тег <Applicant type=> и в отдельном списке проставляем по этому тегу индексы.
     Инверсируем этот список.
-    :param bind_xml_cut:
+    :param bind_xml_after_cut:
     :return: Инверсированный список индексов по тегу <Applicant type=> из обрезанного XML-файла
     """
-    return [index for index, tag in enumerate(bind_xml_cut) if tag.startswith('<Applicant type=')][::-1]
+    return [index for index, tag in enumerate(bind_xml_after_cut) if tag.startswith('<Applicant type=')][::-1]
 
 def decomposing_xml_by_indexes_into_lists(bind_xml_after_cut, bind_xml_after_index):
     """
@@ -308,7 +332,7 @@ def create_text(bind_persons_dict):
             for el in prs.CPLSurname:
                 #print(el, end=';')
                 if ',' in el:
-                    print('#' * 100)
+                    #print('#' * 100)
                     print(el)
                 _text = _text + el + ';'
                 for el in prs.CPName:
@@ -354,7 +378,10 @@ if __name__ == '__main__':
 
     # Обрезаем XML-файл
     xml_after_cut = cut_xml(xml_after_open_and_strip, tags)
-    print('xml_cut: ', xml_after_cut)
+    #print('xml_cut: ', xml_after_cut)
+
+    xml_after_split_tag_into_parts = split_tag_into_parts(xml_after_cut)
+    print('xml_after_split_tag_into_parts: ', xml_after_split_tag_into_parts)
 
     # Создаем список с индексами по обрезанному XML-файл по тегу <Applicant type=>
     xml_after_index: list[int] = index_xml(xml_after_cut)
