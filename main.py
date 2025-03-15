@@ -8,7 +8,7 @@ def cut_tag_and_lower_text(tag):
     :param tag:
     :return: содержимое тега в нижнем регистре (без тега)
     """
-    return re.sub(r"<.*?>", "", tag).lower()
+    return re.sub(r"<.*?>", "", tag).strip().lower()
 
 def cut_date_birth(date_birth):
     """
@@ -190,18 +190,15 @@ def decomposing_xml_by_indexes_into_lists(bind_xml_after_cut, bind_xml_after_ind
     _xml_after_decomposing_by_indexes_into_lists = _xml_after_decomposing_by_indexes_into_lists[::-1]
     return _xml_after_decomposing_by_indexes_into_lists
 
-def add_person_to_list(bind_xml_after_decomposing_by_indexes_into_lists):
+def add_person_to_dict(bind_xml_after_decomposing_by_indexes_into_lists):
     """
     Добавляем всех лиц в единый список
     :param bind_xml_after_decomposing_by_indexes_into_lists:
     :return: список лиц
     """
-    #_persons = list()
     _persons_dict = {'ЕПГУ': [], 'МФЦ': [], 'ФЛ': []}
-    #print(_persons_dict)
-    for line in bind_xml_after_decomposing_by_indexes_into_lists:
-        #print('----------------------')
 
+    for line in bind_xml_after_decomposing_by_indexes_into_lists:
         person = Person()
         for el in line:
             if el.startswith('<Applicant type="Единый портал гос.услуг"'):
@@ -230,7 +227,7 @@ def add_person_to_list(bind_xml_after_decomposing_by_indexes_into_lists):
             _persons_dict['МФЦ'].append(person)
         if person.type_request == ['ФЛ']:
             _persons_dict['ФЛ'].append(person)
-        #_persons.append(person)
+
         """
         print('person.type_request: ', person.type_request)
         print('person.CPSurname: ', person.CPSurname)
@@ -243,16 +240,15 @@ def add_person_to_list(bind_xml_after_decomposing_by_indexes_into_lists):
         """
     return _persons_dict
 
-def create_texts(bind_persons):
+def create_text(bind_persons_dict):
     """
     Создает итоговый текст с нужным форматом фамилия;имя;отчество;чч;мм;гггг;;
-    :param bind_persons: список лиц
+    :param bind_persons_dict: список лиц
     :return: итоговый текст
     """
-
     _text = ''
 
-    for prs in bind_persons:
+    for prs in bind_persons_dict:
         #### Если у лица есть Фамилия или Имя или Отчество (нет старых ФИО)
         for el in prs.CPSurname:
             #print(el, end=';')
@@ -301,6 +297,9 @@ def create_texts(bind_persons):
         elif len(prs.CPLSurname) > 0:
             for el in prs.CPLSurname:
                 #print(el, end=';')
+                if ',' in el:
+                    print('#' * 100)
+                    print(el)
                 _text = _text + el + ';'
                 for el in prs.CPName:
                     #print(el, end=';')
@@ -312,6 +311,27 @@ def create_texts(bind_persons):
                             #print(el, ';;', sep='')
                             _text = _text + el + ';;\n'
     return _text
+
+def classify_text_by_query_type():
+    """
+    Распределение итогового текста на 3 группы (ЕПГУ | Физ лицо | МФЦ)
+    :return:
+    """
+    text_epgu = ''
+    text_fl = ''
+    text_mfc = ''
+
+    for key, value in persons_dict.items():
+        if key == 'ЕПГУ' and len(value) > 0:
+            text_epgu = create_text(persons_dict['ЕПГУ'])
+        if key == 'МФЦ' and len(value) > 0:
+            text_mfc = create_text(persons_dict['МФЦ'])
+        if key == 'ФЛ' and len(value) > 0:
+            text_fl = create_text(persons_dict['ФЛ'])
+
+    print('text_epgu: \n', text_epgu, sep='')
+    print('text_mfc: \n', text_mfc, sep='')
+    print('text_fl: \n', text_fl, sep='')
 
 
 if __name__ == '__main__':
@@ -340,24 +360,7 @@ if __name__ == '__main__':
     #print('\n', '* ' * 50, '\n', 'Список [xml_after_cut] должен стать пустым: (НУЖЕН ТЕСТ?)', xml_after_cut, '\n', '* ' * 50)
 
     # Создаем список лиц
-    persons_dict = add_person_to_list(xml_after_decomposing_by_indexes_into_lists)
+    persons_dict = add_person_to_dict(xml_after_decomposing_by_indexes_into_lists)
 
-    # РАЗДЕЛИТЬ ПЕРСОНЫ НА 3 СПИСКА, по ЕПГУ, МФЦ И ФЛ... ЧЕРЕЗ СЛОВАРЬ?
-    # Если ключ ЕПГУ - то закинуть значение (список) в функцию reate_texts
-
-    # распределение текста
-    text_epgu = ''
-    text_fl   = ''
-    text_mfc  = ''
-
-    for key, value in persons_dict.items():
-        if key == 'ЕПГУ' and len(value) > 0:
-            text_epgu = create_texts(persons_dict['ЕПГУ'])
-        if key == 'МФЦ' and len(value) > 0:
-            text_mfc = create_texts(persons_dict['МФЦ'])
-        if key == 'ФЛ' and len(value) > 0:
-            text_fl = create_texts(persons_dict['ФЛ'])
-
-    print('text_epgu: \n', text_epgu, sep='')
-    print('text_mfc: \n', text_mfc, sep='')
-    print('text_fl: \n', text_fl, sep='')
+    # Распределение итогового текста на 3 группы (ЕПГУ | Физ лицо | МФЦ)
+    classify_text_by_query_type()
