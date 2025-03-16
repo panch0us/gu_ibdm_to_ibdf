@@ -281,71 +281,41 @@ def create_text(bind_persons_dict):
     :return: итоговый текст
     """
     _text = ''
-    fio = ''
 
     for prs in bind_persons_dict:
         #### Если у лица есть Фамилия или Имя или Отчество (нет старых ФИО)
-        for el in prs.CPSurname:
-            #print(el, end=';')
-            _text = _text + el + ';'
-        for el in prs.CPName:
-            #print(el, end=';')
-            _text = _text + el + ';'
-        for el in prs.CPPatronymic:
-            #print(el, end=';')
-            _text = _text + el + ';'
-        for el in prs.CPBirthday:
-            #print(el, ';;', sep='')
-            _text = _text + el + ';;\n'
+        for sn in prs.CPSurname:
+            _text = _text + sn + ';'
+        for nm in prs.CPName:
+            _text = _text + nm + ';'
+        for pn in prs.CPPatronymic:
+            _text = _text + pn + ';'
+        for bd in prs.CPBirthday:
+            _text = _text + bd + ';;\n'
 
         #### Если у лица есть старые Фамилия, Имя и Отчество
         if len(prs.CPLSurname) > 0 and len(prs.CPLName) > 0 and len(prs.CPLPatronymic) > 0:
-            for el1 in prs.CPLSurname:
-                #print(el, end=';')
-                #_text = _text + el1 + ';'
-                for el2 in prs.CPLName:
-                    #print(el, end=';')
-                    #_text = _text + el2 + ';'
-                    for el3 in prs.CPLPatronymic:
-                        #print(el, end=';')
-                        #_text = _text + el3 + ';'
-                        for el4 in prs.CPBirthday:
-                            #print(el, ';;', sep='')
-                            #_text = _text + el4 + ';;\n'
-                            _text = _text + f'{el1};{el2};{el3}{el4};;\n'
+            for ls in prs.CPLSurname:
+                for ln in prs.CPLName:
+                    for lpn in prs.CPLPatronymic:
+                        for bd in prs.CPBirthday:
+                            _text = _text + f'{ls};{ln};{lpn};{bd};;\n'
 
         #### Если у лица есть только старые Фамилия и Имя
         elif len(prs.CPLSurname) > 0 and len(prs.CPLName) > 0:
-            for el in prs.CPLSurname:
-                #print('el: ', el, end=';')
-                _text = _text + el + ';'
-                for el in prs.CPLName:
-                    #print('el: ', el, end=';')
-                    _text = _text + el + ';'
-                    for el in prs.CPPatronymic:
-                        #print(el, end=';')
-                        _text = _text + el + ';'
-                        for el in prs.CPBirthday:
-                            #print(el, ';;', sep='')
-                            _text = _text + el + ';;\n'
+            for ls in prs.CPLSurname:
+                for ln in prs.CPLName:
+                    for pn in prs.CPPatronymic:
+                        for bd in prs.CPBirthday:
+                            _text = _text + f'{ls};{ln};{pn};{bd};;\n'
 
         #### Если у лица есть только старая Фамилия
         elif len(prs.CPLSurname) > 0:
-            for el in prs.CPLSurname:
-                #print(el, end=';')
-                if ',' in el:
-                    #print('#' * 100)
-                    print(1)
-                _text = _text + el + ';'
-                for el in prs.CPName:
-                    #print(el, end=';')
-                    _text = _text + el + ';'
-                    for el in prs.CPPatronymic:
-                        #print(el, end=';')
-                        _text = _text + el + ';'
-                        for el in prs.CPBirthday:
-                            #print(el, ';;', sep='')
-                            _text = _text + el + ';;\n'
+            for ls in prs.CPLSurname:
+                for nm in prs.CPName:
+                    for pn in prs.CPPatronymic:
+                        for bd in prs.CPBirthday:
+                            _text = _text + f'{ls};{nm};{pn};{bd};;\n'
     return _text
 
 def classify_text_by_query_type():
