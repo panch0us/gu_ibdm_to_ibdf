@@ -281,6 +281,7 @@ def create_text(bind_persons_dict):
     :return: итоговый текст
     """
     _text = ''
+    fio = ''
 
     for prs in bind_persons_dict:
         #### Если у лица есть Фамилия или Имя или Отчество (нет старых ФИО)
@@ -299,26 +300,27 @@ def create_text(bind_persons_dict):
 
         #### Если у лица есть старые Фамилия, Имя и Отчество
         if len(prs.CPLSurname) > 0 and len(prs.CPLName) > 0 and len(prs.CPLPatronymic) > 0:
-            for el in prs.CPLSurname:
+            for el1 in prs.CPLSurname:
                 #print(el, end=';')
-                _text = _text + el + ';'
-                for el in prs.CPLName:
+                #_text = _text + el1 + ';'
+                for el2 in prs.CPLName:
                     #print(el, end=';')
-                    _text = _text + el + ';'
-                    for el in prs.CPLPatronymic:
+                    #_text = _text + el2 + ';'
+                    for el3 in prs.CPLPatronymic:
                         #print(el, end=';')
-                        _text = _text + el + ';'
-                        for el in prs.CPBirthday:
+                        #_text = _text + el3 + ';'
+                        for el4 in prs.CPBirthday:
                             #print(el, ';;', sep='')
-                            _text = _text + el + ';;\n'
+                            #_text = _text + el4 + ';;\n'
+                            _text = _text + f'{el1};{el2};{el3}{el4};;\n'
 
         #### Если у лица есть только старые Фамилия и Имя
         elif len(prs.CPLSurname) > 0 and len(prs.CPLName) > 0:
             for el in prs.CPLSurname:
-                #print(el, end=';')
+                #print('el: ', el, end=';')
                 _text = _text + el + ';'
                 for el in prs.CPLName:
-                    #print(el, end=';')
+                    #print('el: ', el, end=';')
                     _text = _text + el + ';'
                     for el in prs.CPPatronymic:
                         #print(el, end=';')
@@ -333,7 +335,7 @@ def create_text(bind_persons_dict):
                 #print(el, end=';')
                 if ',' in el:
                     #print('#' * 100)
-                    print(el)
+                    print(1)
                 _text = _text + el + ';'
                 for el in prs.CPName:
                     #print(el, end=';')
