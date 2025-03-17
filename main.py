@@ -5,8 +5,10 @@ import re
 # Для XML
 from xml_tags import tags
 # Для GUI
-from PySide6.QtWidgets import QApplication, QMainWindow, QWidget, QGridLayout, QHBoxLayout, QLabel, QPushButton, QFileDialog
-from PySide6.QtGui import Qt, QPixmap
+from PySide6.QtWidgets import (QApplication, QMainWindow, QWidget,
+                               QGridLayout, QHBoxLayout, QLabel, QPushButton, QFileDialog,  QMenuBar, QMenu, QMessageBox)
+from PySide6.QtGui import QAction
+
 
 def open_and_strip_xml(bind_path_to_xml):
     """
@@ -360,30 +362,53 @@ class Person:
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
+
         self.text_epgu = ''
         self.text_mfc = ''
         self.text_fl = ''
+
+        # Дизайн приложения
         self.setGeometry(100, 100, 300, 200)
         self.setWindowTitle('ИБД-М -> ИБД-Ф')
 
+        # Виджеты
         widget = QWidget(parent=self)
         self.setCentralWidget(widget)
 
-        # КНОПКИ
+        # Добавить кнопки
         load_xml_button    = QPushButton('Загрузить XML-файл')
         save_result_button = QPushButton('Сохранить результат')
 
-        # ПОДКЛЮЧИТЬ ФУНКЦИОНАЛ КНОПОК
+        # Подключить функционал кнопок
         load_xml_button.clicked.connect(self.load_xml)
         save_result_button.clicked.connect(self.save_result)
 
-        # Разметка элементов на экране
+        # Расположение элементов на экране
         layout = QGridLayout()
         layout.addWidget(load_xml_button, 0, 0)
         layout.addWidget(save_result_button, 0, 1)
         widget.setLayout(layout)
 
+        # Создание меню
+        self.create_menu()
+
+    def create_menu(self):
+        # Создаем менюбар
+        menubar = self.menuBar()
+
+        # Создаем меню "Помощь"
+        help_menu = menubar.addMenu('Помощь')
+
+        # Внутри меню "Помощь" кнопка "О разработчике"
+        about_action = QAction('О разработчике', self)
+        about_action.triggered.connect(self.about_developer)
+        help_menu.addAction(about_action)
+
     def load_xml(self):
+        """
+        Кнопка - загрузить XML-файл в программу
+        :return:
+        """
         path, _ = QFileDialog.getOpenFileName(
             self,
             caption="Выберите XML-файл из портала ИБД-М",
@@ -422,6 +447,10 @@ class MainWindow(QMainWindow):
             self.text_epgu, self.text_mfc, self.text_fl = classify_text_by_query_type(persons_dict)
 
     def save_result(self):
+        """
+        Кнопка - выбрать директорию для сохранения файлов
+        :return:
+        """
         directory = QFileDialog.getExistingDirectory(
             self,
             "Выберите директорию",  # Заголовок окна
@@ -429,15 +458,28 @@ class MainWindow(QMainWindow):
         )
         if directory:
             # Если пользователь выбрал директорию, выводим путь
-            print(f"Выбранная директория: {directory}")
-
-            print(self.text_epgu, self.text_mfc, self.text_fl)
             save_text_in_files(self.text_epgu, self.text_mfc, self.text_fl, directory)
-            print('Результат сохранен!')
+            #print('Результат сохранен!')
+
+    def about_developer(self):
+        """
+        Сведения о разработчике
+        :return:
+        """
+        QMessageBox.information(
+            self,
+            'Здравствуйте!',
+            'Разработал:\tСавкин Павел Владимирович\n'
+            'Почта:\t\tgodbryansk@yandex.ru\n'
+            'Telegram:\thttps://t.me/panch0us\n'
+            'Github:\t\thttps://github.com/panch0us/gu_ibdm_to_ibdf\n'
+            'Версия:\t\t1.0\n'
+            'Год:\t\t2025'
+        )
 
 
 if __name__ == '__main__':
-    # GUI
+    # Запуск графического интерфейса
     app = QApplication(sys.argv)
     main_window = MainWindow()
     main_window.show()
