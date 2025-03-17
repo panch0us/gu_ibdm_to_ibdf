@@ -1,7 +1,14 @@
-from xml_tags import tags
+import sys
+import os
 import re
 
-def open_and_strip_xml():
+# Для XML
+from xml_tags import tags
+# Для GUI
+from PySide6.QtWidgets import QApplication, QMainWindow, QWidget, QGridLayout, QHBoxLayout, QLabel, QPushButton, QFileDialog
+from PySide6.QtGui import Qt, QPixmap
+
+def open_and_strip_xml(bind_path_to_xml):
     """
     Открывает xml-файл. Удаляет лишние пробелы слева и справа в каждой строке.
     :return: Список с тегами без лишних пробелов.
@@ -9,7 +16,7 @@ def open_and_strip_xml():
     # список для обработки исходного xml-файла (без пробелов слева и справа)
     _xml_after_strip = []
     # открываем xml-файл в формате utf-8
-    with open('Запросы от 20250113155643.xml', 'r', encoding='utf-8') as xml_input:
+    with open(bind_path_to_xml, 'r', encoding='utf-8') as xml_input:
         # читаем xml-файл построчно
         for line in xml_input:
             # берем каждую строку исходного xml-файла и удаляем лишние пробелы слева и справа
@@ -140,26 +147,29 @@ def add_person_to_dict(bind_xml_after_decomposing_by_indexes_into_lists):
 
     return _persons_dict
 
-def classify_text_by_query_type():
+def classify_text_by_query_type(bind_all_persons_dict):
     """
     Распределение итогового текста на 3 группы (ЕПГУ | Физ лицо | МФЦ)
-    :return:
+    :return: text_epgu, text_mfc, text_fl
     """
+    # bind_all_persons_dict НАЗВАНИЕ ПЕРЕДЕЛАТЬ ???
     text_epgu = ''
-    text_fl = ''
     text_mfc = ''
+    text_fl = ''
 
-    for key, value in persons_dict.items():
+    for key, value in bind_all_persons_dict.items():
         if key == 'ЕПГУ' and len(value) > 0:
-            text_epgu = create_text(persons_dict['ЕПГУ'])
+            text_epgu = create_text(bind_all_persons_dict['ЕПГУ'])
         if key == 'МФЦ' and len(value) > 0:
-            text_mfc = create_text(persons_dict['МФЦ'])
+            text_mfc = create_text(bind_all_persons_dict['МФЦ'])
         if key == 'ФЛ' and len(value) > 0:
-            text_fl = create_text(persons_dict['ФЛ'])
+            text_fl = create_text(bind_all_persons_dict['ФЛ'])
 
     print('text_epgu: \n', text_epgu, sep='')
     print('text_mfc: \n', text_mfc, sep='')
     print('text_fl: \n', text_fl, sep='')
+
+    return text_epgu, text_mfc, text_fl
 
 ######## Вспомогательные функции и классы ########
 
@@ -327,32 +337,86 @@ class Person:
         self.type_request.append(type_req)
 
 
+class MainWindow(QMainWindow):
+    def __init__(self):
+        super().__init__()
+        self.text_epgu = ''
+        self.text_mfc = ''
+        self.text_fl = ''
+        self.setGeometry(100, 100, 300, 200)
+        self.setWindowTitle('ИБД-М -> ИБД-Ф')
+
+        widget = QWidget(parent=self)
+        self.setCentralWidget(widget)
+
+        # КНОПКИ
+        load_xml_button    = QPushButton('Загрузить XML-файл')
+        save_result_button = QPushButton('Сохранить результат')
+
+        # ПОДКЛЮЧИТЬ ФУНКЦИОНАЛ КНОПОК
+        load_xml_button.clicked.connect(self.load_xml)
+        save_result_button.clicked.connect(self.save_result)
+
+        # Разметка элементов на экране
+        layout = QGridLayout()
+        layout.addWidget(load_xml_button, 0, 0)
+        layout.addWidget(save_result_button, 0, 1)
+        widget.setLayout(layout)
+
+    def load_xml(self):
+        path, _ = QFileDialog.getOpenFileName(
+            self,
+            caption="Выберите XML-файл из портала ИБД-М",
+            dir=os.path.join("..", ""),  # вторые кавычки - начало имени файла
+            filter="XML (*.xml *.XML)"
+        )
+        if path:
+            print(f"XML-файл: '{path}' загружен!")
+            # Открываем XML-файл
+            xml_after_open_and_strip = open_and_strip_xml(path)
+            # print('xml_after_open_and_strip: ', xml_after_open_and_strip)
+
+            # Проверяем XML-файл
+            check_xml(xml_after_open_and_strip)
+
+            # Обрезаем XML-файл
+            xml_after_cut = cut_xml(xml_after_open_and_strip, tags)
+            # print('xml_cut: ', xml_after_cut)
+
+            xml_after_split_tag_into_parts = split_tag_into_parts(xml_after_cut)
+            # print('xml_after_split_tag_into_parts: ', xml_after_split_tag_into_parts)
+
+            # Создаем список с индексами по обрезанному XML-файл по тегу <Applicant type=>
+            xml_after_index: list[int] = index_xml(xml_after_split_tag_into_parts)
+            # print('xml_after_index: ', xml_after_index)
+
+            # Создаем список списков, в каждом из которых уникальные лица со всем тегами, отфильтрованными до этого этапа
+            xml_after_decomposing_by_indexes_into_lists = decomposing_xml_by_indexes_into_lists(xml_after_cut,
+                                                                                                xml_after_index)
+            # print('xml_after_decomposing_by_indexes_into_lists: ', xml_after_decomposing_by_indexes_into_lists)
+
+            # Создаем словарь с группами (тип заявления: список лиц)
+            persons_dict = add_person_to_dict(xml_after_decomposing_by_indexes_into_lists)
+
+            # Распределение итогового текста на 3 группы (ЕПГУ | Физ лицо | МФЦ)
+            self.text_epgu, self.text_mfc, self.text_fl = classify_text_by_query_type(persons_dict)
+
+    def save_result(self):
+        directory = QFileDialog.getExistingDirectory(
+            self,
+            "Выберите директорию",  # Заголовок окна
+            "",  # Начальная директория (пустая строка означает текущую директорию)
+        )
+        if directory:
+            # Если пользователь выбрал директорию, выводим путь
+            print(f"Выбранная директория: {directory}")
+            print("Результат СОХРАНЕН!")
+            print(self.text_epgu, self.text_mfc, self.text_fl)
+
 
 if __name__ == '__main__':
-    # Открываем XML-файл
-    xml_after_open_and_strip = open_and_strip_xml()
-    #print('xml_after_open_and_strip: ', xml_after_open_and_strip)
-
-    # Проверяем XML-файл
-    check_xml(xml_after_open_and_strip)
-
-    # Обрезаем XML-файл
-    xml_after_cut = cut_xml(xml_after_open_and_strip, tags)
-    #print('xml_cut: ', xml_after_cut)
-
-    xml_after_split_tag_into_parts = split_tag_into_parts(xml_after_cut)
-    #print('xml_after_split_tag_into_parts: ', xml_after_split_tag_into_parts)
-
-    # Создаем список с индексами по обрезанному XML-файл по тегу <Applicant type=>
-    xml_after_index: list[int] = index_xml(xml_after_split_tag_into_parts)
-    #print('xml_after_index: ', xml_after_index)
-
-    # Создаем список списков, в каждом из которых уникальные лица со всем тегами, отфильтрованными до этого этапа
-    xml_after_decomposing_by_indexes_into_lists = decomposing_xml_by_indexes_into_lists(xml_after_cut, xml_after_index)
-    #print('xml_after_decomposing_by_indexes_into_lists: ', xml_after_decomposing_by_indexes_into_lists)
-
-    # Создаем словарь с группами (тип заявления: список лиц)
-    persons_dict = add_person_to_dict(xml_after_decomposing_by_indexes_into_lists)
-
-    # Распределение итогового текста на 3 группы (ЕПГУ | Физ лицо | МФЦ)
-    classify_text_by_query_type()
+    # GUI
+    app = QApplication(sys.argv)
+    main_window = MainWindow()
+    main_window.show()
+    app.exec()
