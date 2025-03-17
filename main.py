@@ -239,6 +239,26 @@ def create_text(bind_persons_dict):
                             _text = _text + f'{ls};{nm};{pn};{bd};;\n'
     return _text
 
+def save_text_in_files(bind_text_epgu, bind_text_mfc, bind_text_fl, bind_directory):
+    """
+    Сохраняет итоговые файлы в txt-формате в зависимости от наличия текста (если нет текста - не сохраняет ничего)
+    :param bind_text_epgu:
+    :param bind_text_mfc:
+    :param bind_text_fl:
+    :param bind_directory:
+    :return: None
+    """
+    if len(bind_text_epgu) > 0:
+        with open(bind_directory + '/ЕПГУ.txt', 'w', encoding='utf-8') as epgu_txt:
+            epgu_txt.write(bind_text_epgu)
+    if len(bind_text_mfc) > 0:
+        with open(bind_directory + '/МФЦ.txt', 'w', encoding='utf-8') as mfc_txt:
+            mfc_txt.write(bind_text_mfc)
+    if len(bind_text_fl) > 0:
+        with open(bind_directory + '/Физ лицо.txt', 'w', encoding='utf-8') as fl_txt:
+            fl_txt.write(bind_text_fl)
+
+
 class Person:
     """
     Лицо с ФИО и Датой рождения, а также со старыми ФИО
@@ -410,8 +430,10 @@ class MainWindow(QMainWindow):
         if directory:
             # Если пользователь выбрал директорию, выводим путь
             print(f"Выбранная директория: {directory}")
-            print("Результат СОХРАНЕН!")
+
             print(self.text_epgu, self.text_mfc, self.text_fl)
+            save_text_in_files(self.text_epgu, self.text_mfc, self.text_fl, directory)
+            print('Результат сохранен!')
 
 
 if __name__ == '__main__':
