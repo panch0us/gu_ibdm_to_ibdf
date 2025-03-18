@@ -5,8 +5,7 @@ import re
 # Для XML
 from xml_tags import tags
 # Для GUI
-from PySide6.QtWidgets import (QApplication, QMainWindow, QWidget,
-                               QGridLayout, QHBoxLayout, QLabel, QPushButton, QFileDialog,  QMenuBar, QMenu, QMessageBox)
+from PySide6.QtWidgets import (QApplication, QMainWindow, QWidget, QGridLayout, QPushButton, QFileDialog, QMessageBox)
 from PySide6.QtGui import QAction
 
 
@@ -450,6 +449,7 @@ class MainWindow(QMainWindow):
 
                 # Распределение итогового текста на 3 группы (ЕПГУ | Физ лицо | МФЦ)
                 self.text_epgu, self.text_mfc, self.text_fl = classify_text_by_query_type(persons_dict)
+                self.load_xml_file_success()
 
     def save_result(self):
         """
@@ -465,6 +465,7 @@ class MainWindow(QMainWindow):
             # Если пользователь выбрал директорию, выводим путь
             save_text_in_files(self.text_epgu, self.text_mfc, self.text_fl, directory)
             #print('Результат сохранен!')
+            self.save_result_success()
 
     def about_developer(self):
         """
@@ -492,6 +493,28 @@ class MainWindow(QMainWindow):
             'Ошибка!',
             'Неверный формат XML-файла, попробуйте загрузить другой файл.\n'
             'Если не помогло - обратитесь к разработчику (см. раздел "Помощь").'
+        )
+
+    def load_xml_file_success(self):
+        """
+        XML-файл загружен и обработан успешно
+        :return:
+        """
+        QMessageBox.information(
+            self,
+            'Успешное заверение!',
+            'Загрузка и обработка XML-файла прошла успешно.\n'
+        )
+
+    def save_result_success(self):
+        """
+        Файлы результатат сохранены успешно
+        :return:
+        """
+        QMessageBox.information(
+            self,
+            'Успешное сохранение!',
+            'Сохранение результата прошло успешно.\n'
         )
 
 
