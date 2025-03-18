@@ -11,4 +11,4 @@
 - петров;петр;петрович;1961;;
 
 3. Сборка
-- pyinstaller main.py --windowed --name ibdm-ibdf-1.0 --version-file version_for_pyinstaller --onefile -i scissor.ico
+- pyinstaller main.py --windowed --name ibdm-ibdf-winx64-1.0 --version-file version_for_pyinstaller --onefile -i scissor.ico
