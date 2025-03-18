@@ -34,7 +34,7 @@ def check_xml(bind_xml_after_open):
     match bind_xml_after_open:
         case ['<?xml version="1.0" encoding="UTF-8"?>', '<List>', _, _, _, '<Document>', _,
               '<Procedure>issue</Procedure>', *_, '</Document>', '</List>']:
-            print("Проверка XML: Стандартный!")
+            #print("Проверка XML: Стандартный!")
             return 'ok'
         case _:
             #raise SyntaxError("Ошибка. Формат файла XML не стандартный")
@@ -167,9 +167,9 @@ def classify_text_by_query_type(bind_all_persons_dict):
         if key == 'ФЛ' and len(value) > 0:
             text_fl = create_text(bind_all_persons_dict['ФЛ'])
 
-    print('text_epgu: \n', text_epgu, sep='')
-    print('text_mfc: \n', text_mfc, sep='')
-    print('text_fl: \n', text_fl, sep='')
+    #print('text_epgu: \n', text_epgu, sep='')
+    #print('text_mfc: \n', text_mfc, sep='')
+    #print('text_fl: \n', text_fl, sep='')
 
     return text_epgu, text_mfc, text_fl
 
@@ -248,28 +248,28 @@ def save_text_in_files(bind_text_epgu, bind_text_mfc, bind_text_fl, bind_directo
     :param bind_text_mfc:
     :param bind_text_fl:
     :param bind_directory:
-    :return: None
+    :return: int, int, int
     """
-    # Флаги для запоминания значений наличия в XML-файле в типе заявления групп ЕПГУ | МФЦ или Физ. Лиз
-    # Если в тексте есть лица, принадлежащие к типу заявлений ЕПГУ, то epgu = 1, иначе = 0
-    epgu = 0
-    mfc = 0
-    fl = 0
+    # Флаги для запоминания значений наличия в XML-файле в типе заявления групп ЕПГУ, МФЦ или Физ лиц
+    # Если в тексте есть лица, принадлежащие к типу заявлений ЕПГУ, то flag_epgu = 1, иначе = 0
+    flag_epgu = 0
+    flag_mfc = 0
+    flag_fl = 0
 
     if len(bind_text_epgu) > 0:
         with open(bind_directory + '/ЕПГУ.txt', 'w', encoding='utf-8') as epgu_txt:
             epgu_txt.write(bind_text_epgu)
-        epgu = 1
+        flag_epgu = 1
     if len(bind_text_mfc) > 0:
         with open(bind_directory + '/МФЦ.txt', 'w', encoding='utf-8') as mfc_txt:
             mfc_txt.write(bind_text_mfc)
-        mfc = 1
+        flag_mfc = 1
     if len(bind_text_fl) > 0:
         with open(bind_directory + '/Физ лицо.txt', 'w', encoding='utf-8') as fl_txt:
             fl_txt.write(bind_text_fl)
-        fl = 1
+        flag_fl = 1
 
-    return epgu, mfc, fl
+    return flag_epgu, flag_mfc, flag_fl
 
 class Person:
     """
@@ -373,10 +373,11 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
 
+        # Переменные для хранения итогового текста и передачи его для сохранения в итоговые файлы
+        # в функцию save_text_in_files
         self.text_epgu = ''
         self.text_mfc = ''
         self.text_fl = ''
-        self.after_check_xml = ''
 
         # Дизайн приложения
         self.setGeometry(100, 100, 300, 150)
@@ -434,9 +435,9 @@ class MainWindow(QMainWindow):
             # print('xml_after_open_and_strip: ', xml_after_open_and_strip)
 
             # Проверяем XML-файл
-            self.after_check_xml = check_xml(xml_after_open_and_strip)
+            after_check_xml = check_xml(xml_after_open_and_strip)
 
-            if self.after_check_xml == 'error':
+            if after_check_xml == 'error':
                 print('Error XML format')
                 self.incorrect_format_xml()
             else:
@@ -470,25 +471,27 @@ class MainWindow(QMainWindow):
         Кнопка - выбрать директорию для сохранения файлов
         :return:
         """
+        # Выбор пользователем директории для сохранения результата (файлов)
         directory = QFileDialog.getExistingDirectory(
             self,
             "Выберите директорию",  # Заголовок окна
             "",  # Начальная директория (пустая строка означает текущую директорию)
         )
         if directory:
-            # Если пользователь выбрал директорию, выводим путь
+            # Если пользователь выбрал директорию, передаем информацию для сохранения в файлы
             epgu, mfc, fl = save_text_in_files(self.text_epgu, self.text_mfc, self.text_fl, directory)
 
+            # В зависимости от того, какие файлы создались (ЕПГУ, МФЦ, Физ лицо) - пользователю выводится уведомление
             if epgu == 1 or mfc == 1 or fl == 1:
-                # Пользователю выводится уведомление на экран об успешном сохранении результата (файлов)
                 self.save_result_success()
             else:
+                # Если ни одного файла не создалось (нет результата после обработки XML-файла) - выдается ошибка
                 self.incorrect_save_empty_result()
 
     def about_developer(self):
         """
         Сведения о разработчике
-        :return:
+        :return: None
         """
         QMessageBox.information(
             self,
@@ -535,6 +538,7 @@ class MainWindow(QMainWindow):
             self,
             'Успешное заверение!',
             'Загрузка и обработка XML-файла прошла успешно.\n'
+            'Нажмите на кнопку "Сохранить результат" для выбора места сохранения.'
         )
 
     def save_result_success(self):
