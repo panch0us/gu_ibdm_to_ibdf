@@ -30,15 +30,16 @@ def check_xml(bind_xml_after_open):
     """
     Проверяем XML-файл на соответствие стандартному. Пока встречался один вариант. Если не совпадает - исключение.
     :param bind_xml_after_open:
-    :return: 0
+    :return:
     """
     match bind_xml_after_open:
         case ['<?xml version="1.0" encoding="UTF-8"?>', '<List>', _, _, _, '<Document>', _,
               '<Procedure>issue</Procedure>', *_, '</Document>', '</List>']:
             print("Проверка XML: Стандартный!")
+            return 'ok'
         case _:
-            raise SyntaxError("Ошибка. Формат файла XML не стандартный")
-    return 0
+            #raise SyntaxError("Ошибка. Формат файла XML не стандартный")
+            return 'error'
 
 def cut_xml(bind_xml_after_strip, bind_tags):
     """
@@ -366,6 +367,7 @@ class MainWindow(QMainWindow):
         self.text_epgu = ''
         self.text_mfc = ''
         self.text_fl = ''
+        self.after_check_xml = ''
 
         # Дизайн приложения
         self.setGeometry(100, 100, 300, 200)
@@ -422,29 +424,32 @@ class MainWindow(QMainWindow):
             # print('xml_after_open_and_strip: ', xml_after_open_and_strip)
 
             # Проверяем XML-файл
-            check_xml(xml_after_open_and_strip)
+            self.after_check_xml = check_xml(xml_after_open_and_strip)
+            if self.after_check_xml == 'error':
+                print('Error XML format')
+                self.incorrect_format_xml()
+            else:
+                # Обрезаем XML-файл
+                xml_after_cut = cut_xml(xml_after_open_and_strip, tags)
+                # print('xml_cut: ', xml_after_cut)
 
-            # Обрезаем XML-файл
-            xml_after_cut = cut_xml(xml_after_open_and_strip, tags)
-            # print('xml_cut: ', xml_after_cut)
+                xml_after_split_tag_into_parts = split_tag_into_parts(xml_after_cut)
+                # print('xml_after_split_tag_into_parts: ', xml_after_split_tag_into_parts)
 
-            xml_after_split_tag_into_parts = split_tag_into_parts(xml_after_cut)
-            # print('xml_after_split_tag_into_parts: ', xml_after_split_tag_into_parts)
+                # Создаем список с индексами по обрезанному XML-файл по тегу <Applicant type=>
+                xml_after_index: list[int] = index_xml(xml_after_split_tag_into_parts)
+                # print('xml_after_index: ', xml_after_index)
 
-            # Создаем список с индексами по обрезанному XML-файл по тегу <Applicant type=>
-            xml_after_index: list[int] = index_xml(xml_after_split_tag_into_parts)
-            # print('xml_after_index: ', xml_after_index)
+                # Создаем список списков, в каждом из которых уникальные лица со всем тегами, отфильтрованными до этого этапа
+                xml_after_decomposing_by_indexes_into_lists = decomposing_xml_by_indexes_into_lists(xml_after_cut,
+                                                                                                    xml_after_index)
+                # print('xml_after_decomposing_by_indexes_into_lists: ', xml_after_decomposing_by_indexes_into_lists)
 
-            # Создаем список списков, в каждом из которых уникальные лица со всем тегами, отфильтрованными до этого этапа
-            xml_after_decomposing_by_indexes_into_lists = decomposing_xml_by_indexes_into_lists(xml_after_cut,
-                                                                                                xml_after_index)
-            # print('xml_after_decomposing_by_indexes_into_lists: ', xml_after_decomposing_by_indexes_into_lists)
+                # Создаем словарь с группами (тип заявления: список лиц)
+                persons_dict = add_person_to_dict(xml_after_decomposing_by_indexes_into_lists)
 
-            # Создаем словарь с группами (тип заявления: список лиц)
-            persons_dict = add_person_to_dict(xml_after_decomposing_by_indexes_into_lists)
-
-            # Распределение итогового текста на 3 группы (ЕПГУ | Физ лицо | МФЦ)
-            self.text_epgu, self.text_mfc, self.text_fl = classify_text_by_query_type(persons_dict)
+                # Распределение итогового текста на 3 группы (ЕПГУ | Физ лицо | МФЦ)
+                self.text_epgu, self.text_mfc, self.text_fl = classify_text_by_query_type(persons_dict)
 
     def save_result(self):
         """
@@ -475,6 +480,18 @@ class MainWindow(QMainWindow):
             'Github:\t\thttps://github.com/panch0us/gu_ibdm_to_ibdf\n'
             'Версия:\t\t1.0\n'
             'Год:\t\t2025'
+        )
+
+    def incorrect_format_xml(self):
+        """
+        Неверный формат XML
+        :return:
+        """
+        QMessageBox.warning(
+            self,
+            'Ошибка!',
+            'Неверный формат XML-файла, попробуйте загрузить другой файл.\n'
+            'Если не помогло - обратитесь к разработчику (см. раздел "Помощь").'
         )
 
 
