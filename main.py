@@ -6,7 +6,7 @@ import re
 from xml_tags import tags
 # Для GUI
 from PySide6.QtWidgets import (QApplication, QMainWindow, QWidget, QGridLayout, QPushButton, QFileDialog, QMessageBox)
-from PySide6.QtGui import QAction
+from PySide6.QtGui import QIcon, QAction
 
 
 def open_and_strip_xml(bind_path_to_xml):
@@ -250,16 +250,26 @@ def save_text_in_files(bind_text_epgu, bind_text_mfc, bind_text_fl, bind_directo
     :param bind_directory:
     :return: None
     """
+    # Флаги для запоминания значений наличия в XML-файле в типе заявления групп ЕПГУ | МФЦ или Физ. Лиз
+    # Если в тексте есть лица, принадлежащие к типу заявлений ЕПГУ, то epgu = 1, иначе = 0
+    epgu = 0
+    mfc = 0
+    fl = 0
+
     if len(bind_text_epgu) > 0:
         with open(bind_directory + '/ЕПГУ.txt', 'w', encoding='utf-8') as epgu_txt:
             epgu_txt.write(bind_text_epgu)
+        epgu = 1
     if len(bind_text_mfc) > 0:
         with open(bind_directory + '/МФЦ.txt', 'w', encoding='utf-8') as mfc_txt:
             mfc_txt.write(bind_text_mfc)
+        mfc = 1
     if len(bind_text_fl) > 0:
         with open(bind_directory + '/Физ лицо.txt', 'w', encoding='utf-8') as fl_txt:
             fl_txt.write(bind_text_fl)
+        fl = 1
 
+    return epgu, mfc, fl
 
 class Person:
     """
@@ -369,7 +379,8 @@ class MainWindow(QMainWindow):
         self.after_check_xml = ''
 
         # Дизайн приложения
-        self.setGeometry(100, 100, 300, 200)
+        self.setGeometry(100, 100, 300, 150)
+        self.setWindowIcon(QIcon('scissor.ico'))
         self.setWindowTitle('ИБД-М -> ИБД-Ф')
 
         # Виджеты
@@ -407,7 +418,7 @@ class MainWindow(QMainWindow):
 
     def load_xml(self):
         """
-        Кнопка - загрузить XML-файл в программу
+        Кнопка - загрузить XML-файл@
         :return:
         """
         path, _ = QFileDialog.getOpenFileName(
@@ -424,6 +435,7 @@ class MainWindow(QMainWindow):
 
             # Проверяем XML-файл
             self.after_check_xml = check_xml(xml_after_open_and_strip)
+
             if self.after_check_xml == 'error':
                 print('Error XML format')
                 self.incorrect_format_xml()
@@ -449,6 +461,8 @@ class MainWindow(QMainWindow):
 
                 # Распределение итогового текста на 3 группы (ЕПГУ | Физ лицо | МФЦ)
                 self.text_epgu, self.text_mfc, self.text_fl = classify_text_by_query_type(persons_dict)
+
+                # Если всё прошло успешно - выводим пользователю уведомление на экран о завершении загрузки XML
                 self.load_xml_file_success()
 
     def save_result(self):
@@ -463,9 +477,13 @@ class MainWindow(QMainWindow):
         )
         if directory:
             # Если пользователь выбрал директорию, выводим путь
-            save_text_in_files(self.text_epgu, self.text_mfc, self.text_fl, directory)
-            #print('Результат сохранен!')
-            self.save_result_success()
+            epgu, mfc, fl = save_text_in_files(self.text_epgu, self.text_mfc, self.text_fl, directory)
+
+            if epgu == 1 or mfc == 1 or fl == 1:
+                # Пользователю выводится уведомление на экран об успешном сохранении результата (файлов)
+                self.save_result_success()
+            else:
+                self.incorrect_save_empty_result()
 
     def about_developer(self):
         """
@@ -495,6 +513,19 @@ class MainWindow(QMainWindow):
             'Если не помогло - обратитесь к разработчику (см. раздел "Помощь").'
         )
 
+    def incorrect_save_empty_result(self):
+        """
+        Некорректная попытка сохранения пустого результата
+        :return:
+        """
+        QMessageBox.warning(
+            self,
+            'Ошибка!',
+            'Информация для сохранения отсутствует.\n'
+            'Попробуйте снова загрузить XML-файл.\n'
+            'Если не помогло - обратитесь к разработчику (см. раздел "Помощь").'
+        )
+
     def load_xml_file_success(self):
         """
         XML-файл загружен и обработан успешно
@@ -508,7 +539,7 @@ class MainWindow(QMainWindow):
 
     def save_result_success(self):
         """
-        Файлы результатат сохранены успешно
+        Результат в виде файла (файлов) сохранены успешно
         :return:
         """
         QMessageBox.information(
