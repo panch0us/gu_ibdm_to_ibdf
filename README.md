@@ -9,3 +9,6 @@
 - иванов;иван;иванович;1990;;
 - иванов;павел;иванович;1990;;
 - петров;петр;петрович;1961;;
+
+3. Сборка
+- pyinstaller main.py --windowed --name ibdm-ibdf-1.0 --version-file version_for_pyinstaller --onefile -i scissor.ico
