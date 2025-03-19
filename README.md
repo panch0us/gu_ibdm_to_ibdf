@@ -1,4 +1,4 @@
-![Logotype](./docs/scissor.ico)
+![Изображение](./docs/scissor.ico)
 <br>
 ## 📋 ИЗ ИБД-М В ИБД-Ф
 
@@ -31,9 +31,10 @@
 pyinstaller main.py --windowed --name ibdm-ibdf-winx64-1.0 --version-file version_for_pyinstaller --onefile -i docs\scissor.ico
 
 ***5. Внешний вид:***
-<br>
 - Темная тема:
+<br>
 ![Logotype](./docs/b_main.jpg)
 <br>
 - Светлая тема:
+<br>
 ![Logotype](./docs/w_main.jpg)
