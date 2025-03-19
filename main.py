@@ -381,7 +381,7 @@ class MainWindow(QMainWindow):
 
         # Дизайн приложения
         self.setGeometry(100, 100, 300, 150)
-        self.setWindowIcon(QIcon('scissor.ico'))
+        self.setWindowIcon(QIcon('docs/scissor.ico'))
         self.setWindowTitle('ИБД-М -> ИБД-Ф')
 
         # Виджеты

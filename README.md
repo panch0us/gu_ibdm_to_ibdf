@@ -1,4 +1,4 @@
-## 📋 ИЗ ИБД-Ф В ИБД-М
+## 📋 ИЗ ИБД-М В ИБД-Ф
 
 ***1. На вход получаем XML-файл из портала ИБД-М определенного формата. Сокращенный вид файла:***
 ```
@@ -26,6 +26,8 @@
 
 ***4. Сборка:***
 - Под OS Windows x64: 
-pyinstaller main.py --windowed --name ibdm-ibdf-winx64-1.0 --version-file version_for_pyinstaller --onefile -i scissor.ico
+pyinstaller main.py --windowed --name ibdm-ibdf-winx64-1.0 --version-file version_for_pyinstaller --onefile -i docs\scissor.ico
 
 ***5. Внешний вид:***
+![Logotype](./docs/b_main.jpg)
+![Logotype](./docs/w_main.jpg)

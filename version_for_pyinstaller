@@ -19,7 +19,7 @@ VSVersionInfo(
       StringTable(
         u'040904B0',
         [StringStruct(u'CompanyName', u' Савкин П.В.'),
-        StringStruct(u'FileDescription', u'Формирование файла из XML ИБД-М для пакетной проверки лиц по ИБД-Ф'),
+        StringStruct(u'FileDescription', u'Из XML-файла ИБД-М для проверки в ИБД-Ф'),
         StringStruct(u'FileVersion', u'1.0.0'),
         StringStruct(u'InternalName', u'cmd'),
         StringStruct(u'LegalCopyright', u'The Unlicense, Савкин П.В.'),
