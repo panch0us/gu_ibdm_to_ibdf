@@ -1,4 +1,4 @@
-<div align="center"><img src="./docs/scissor.ico" alt="ibm-ibdf" style="width: 200px; height: 200px;"></div>
+<div align="center"><img src="./docs/scissor.ico" alt="ibm-ibdf" style="width: 100px; height: 100px;"></div>
 
 ## 📋 ИЗ ИБД-М В ИБД-Ф
 
