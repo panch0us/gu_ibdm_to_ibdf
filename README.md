@@ -1,5 +1,4 @@
-![Изображение](./docs/scissor.ico)
-<br>
+![Logotype](./docs/scissor.ico)<br>
 ## 📋 ИЗ ИБД-М В ИБД-Ф
 
 ***1. На вход получаем XML-файл из портала ИБД-М определенного формата. Сокращенный вид файла:***
@@ -31,10 +30,7 @@
 pyinstaller main.py --windowed --name ibdm-ibdf-winx64-1.0 --version-file version_for_pyinstaller --onefile -i docs\scissor.ico
 
 ***5. Внешний вид:***
-- Темная тема:
-<br>
-![Logotype](./docs/b_main.jpg)
-<br>
-- Светлая тема:
-<br>
-![Logotype](./docs/w_main.jpg)
+- Темная тема:<br>
+![Black_theme](./docs/b_main.jpg)<br>
+- Светлая тема:<br>
+![White_theme](./docs/w_main.jpg)
