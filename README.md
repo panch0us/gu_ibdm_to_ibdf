@@ -1,10 +1,4 @@
-||                               |                         |
-|:|:-----------------------------:|------------------------:|
-||![Logotype](./docs/scissor.ico)||
-
-<div align="center">
-  <img src="./docs/scissor.ico" alt="Описание изображения">
-</div>
+<div align="center"><img src="./docs/scissor.ico" alt="ibm-ibdf" style="width: 200px; height: 200px;"></div>
 
 ## 📋 ИЗ ИБД-М В ИБД-Ф
 
