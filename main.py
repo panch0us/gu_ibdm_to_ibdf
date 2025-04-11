@@ -270,15 +270,15 @@ def save_text_in_files(bind_text_epgu, bind_text_mfc, bind_text_fl, bind_directo
     flag_fl = 0
 
     if len(bind_text_epgu) > 0:
-        with open(bind_directory + '/ЕПГУ.txt', 'w', encoding='utf-8') as epgu_txt:
+        with open(bind_directory + '/ЕПГУ.txt', 'w', encoding='windows-1251') as epgu_txt:
             epgu_txt.write(bind_text_epgu)
         flag_epgu = 1
     if len(bind_text_mfc) > 0:
-        with open(bind_directory + '/МФЦ.txt', 'w', encoding='utf-8') as mfc_txt:
+        with open(bind_directory + '/МФЦ.txt', 'w', encoding='windows-1251') as mfc_txt:
             mfc_txt.write(bind_text_mfc)
         flag_mfc = 1
     if len(bind_text_fl) > 0:
-        with open(bind_directory + '/Физ лицо.txt', 'w', encoding='utf-8') as fl_txt:
+        with open(bind_directory + '/Физ лицо.txt', 'w', encoding='windows-1251') as fl_txt:
             fl_txt.write(bind_text_fl)
         flag_fl = 1
 
