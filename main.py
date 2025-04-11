@@ -220,7 +220,7 @@ def create_text(bind_persons_dict):
             elif len(prs.CPPatronymic) == 0:
                 _text = _text + ';'
             for bd in prs.CPBirthday:
-                _text = _text + bd + ';;\n'
+                _text = _text + cut_date_birth(bd) + ';;\n'
 
         #### Если у лица есть старые Фамилия, Имя и Отчество
         if len(prs.CPLSurname) > 0 and len(prs.CPLName) > 0 and len(prs.CPLPatronymic) > 0:
@@ -228,7 +228,7 @@ def create_text(bind_persons_dict):
                 for ln in prs.CPLName:
                     for lpn in prs.CPLPatronymic:
                         for bd in prs.CPBirthday:
-                            _text = _text + f'{ls};{ln};{lpn};{bd};;\n'
+                            _text = _text + f'{ls};{ln};{lpn};{cut_date_birth(bd)};;\n'
 
         #### Если у лица есть только старые Фамилия и Имя
         elif len(prs.CPLSurname) > 0 and len(prs.CPLName) > 0:
@@ -236,7 +236,7 @@ def create_text(bind_persons_dict):
                 for ln in prs.CPLName:
                     for pn in prs.CPPatronymic:
                         for bd in prs.CPBirthday:
-                            _text = _text + f'{ls};{ln};{pn};{bd};;\n'
+                            _text = _text + f'{ls};{ln};{pn};{cut_date_birth(bd)};;\n'
 
         #### Если у лица есть только старая Фамилия
         elif len(prs.CPLSurname) > 0:
@@ -246,11 +246,11 @@ def create_text(bind_persons_dict):
                     if len(prs.CPPatronymic) > 0:
                         for pn in prs.CPPatronymic:
                             for bd in prs.CPBirthday:
-                                _text = _text + f'{ls};{nm};{pn};{bd};;\n'
+                                _text = _text + f'{ls};{nm};{pn};{cut_date_birth(bd)};;\n'
                     # Иначе если отчества нет
                     elif len(prs.CPPatronymic) == 0:
                         for bd in prs.CPBirthday:
-                            _text = _text + f'{ls};{nm};;{bd};;\n'
+                            _text = _text + f'{ls};{nm};;{cut_date_birth(bd)};;\n'
 
     return _text
 
@@ -373,7 +373,7 @@ class Person:
         """
         Установить дату рождения в формате ГГГГ
         """
-        self.CPBirthday.append(cut_date_birth(cut_tag_and_lower_text(first_birthday)))
+        self.CPBirthday.append(cut_tag_and_lower_text(first_birthday))
 
     def set_type_request(self, type_req):
         """
