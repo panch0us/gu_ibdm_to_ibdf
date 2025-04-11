@@ -206,26 +206,21 @@ def create_text(bind_persons_dict):
     _text = ''
 
     for prs in bind_persons_dict:
-        #### Если у лица есть Фамилия или Имя или Отчество (нет старых ФИО)
-        if len(prs.CPSurname) > 0 and len(prs.CPName) > 0 and len(prs.CPPatronymic) > 0:
+        #### Если у лица есть Фамилия или Имя (отчество вариативно) и нет старых ФИО
+        if len(prs.CPSurname) > 0 and len(prs.CPName) > 0:
             for sn in prs.CPSurname:
                 _text = _text + sn + ';'
             for nm in prs.CPName:
                 _text = _text + nm + ';'
-            for pn in prs.CPPatronymic:
-                _text = _text + pn + ';'
+            # Если есть отчество:
+            if len(prs.CPPatronymic) > 0:
+                for pn in prs.CPPatronymic:
+                    _text = _text + pn + ';'
+            # Если нет отчества
+            elif len(prs.CPPatronymic) == 0:
+                _text = _text + ';'
             for bd in prs.CPBirthday:
                 _text = _text + bd + ';;\n'
-
-        #### Если у лица есть Фамилия или Имя, а отчества и старых ФИО нет
-        if len(prs.CPSurname) > 0 and len(prs.CPName) > 0 and len(prs.CPPatronymic) == 0:
-            for sn in prs.CPSurname:
-                _text = _text + sn + ';'
-            for nm in prs.CPName:
-                _text = _text + nm + ';;'
-            for bd in prs.CPBirthday:
-                _text = _text + bd + ';;\n'
-
 
         #### Если у лица есть старые Фамилия, Имя и Отчество
         if len(prs.CPLSurname) > 0 and len(prs.CPLName) > 0 and len(prs.CPLPatronymic) > 0:
@@ -247,9 +242,16 @@ def create_text(bind_persons_dict):
         elif len(prs.CPLSurname) > 0:
             for ls in prs.CPLSurname:
                 for nm in prs.CPName:
-                    for pn in prs.CPPatronymic:
+                    # Если есть отчество
+                    if len(prs.CPPatronymic) > 0:
+                        for pn in prs.CPPatronymic:
+                            for bd in prs.CPBirthday:
+                                _text = _text + f'{ls};{nm};{pn};{bd};;\n'
+                    # Иначе если отчества нет
+                    elif len(prs.CPPatronymic) == 0:
                         for bd in prs.CPBirthday:
-                            _text = _text + f'{ls};{nm};{pn};{bd};;\n'
+                            _text = _text + f'{ls};{nm};;{bd};;\n'
+
     return _text
 
 def save_text_in_files(bind_text_epgu, bind_text_mfc, bind_text_fl, bind_directory):
