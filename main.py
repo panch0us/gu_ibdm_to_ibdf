@@ -5,7 +5,7 @@ import re
 # Для XML
 from xml_tags import tags
 # Для GUI
-from PySide6.QtWidgets import (QApplication, QMainWindow, QWidget, QGridLayout, QPushButton, QFileDialog, QMessageBox)
+from PySide6.QtWidgets import QApplication, QMainWindow, QWidget, QGridLayout, QPushButton, QFileDialog, QMessageBox
 from PySide6.QtGui import QIcon, QAction
 
 
@@ -167,9 +167,9 @@ def classify_text_by_query_type(bind_all_persons_dict):
         if key == 'ФЛ' and len(value) > 0:
             text_fl = create_text(bind_all_persons_dict['ФЛ'])
 
-    #print('text_epgu: \n', text_epgu, sep='')
-    #print('text_mfc: \n', text_mfc, sep='')
-    #print('text_fl: \n', text_fl, sep='')
+    print('text_epgu: \n', text_epgu, sep='')
+    print('text_mfc: \n', text_mfc, sep='')
+    print('text_fl: \n', text_fl, sep='')
 
     return text_epgu, text_mfc, text_fl
 
@@ -200,21 +200,32 @@ def cut_date_birth(date_birth):
 def create_text(bind_persons_dict):
     """
     Создает итоговый текст с нужным форматом фамилия;имя;отчество;чч;мм;гггг;;
-    :param bind_persons_dict: список лиц
+    :param bind_persons_dict: словарь лиц, разделенных по группам
     :return: итоговый текст
     """
     _text = ''
 
     for prs in bind_persons_dict:
         #### Если у лица есть Фамилия или Имя или Отчество (нет старых ФИО)
-        for sn in prs.CPSurname:
-            _text = _text + sn + ';'
-        for nm in prs.CPName:
-            _text = _text + nm + ';'
-        for pn in prs.CPPatronymic:
-            _text = _text + pn + ';'
-        for bd in prs.CPBirthday:
-            _text = _text + bd + ';;\n'
+        if len(prs.CPSurname) > 0 and len(prs.CPName) > 0 and len(prs.CPPatronymic) > 0:
+            for sn in prs.CPSurname:
+                _text = _text + sn + ';'
+            for nm in prs.CPName:
+                _text = _text + nm + ';'
+            for pn in prs.CPPatronymic:
+                _text = _text + pn + ';'
+            for bd in prs.CPBirthday:
+                _text = _text + bd + ';;\n'
+
+        #### Если у лица есть Фамилия или Имя, а отчества и старых ФИО нет
+        if len(prs.CPSurname) > 0 and len(prs.CPName) > 0 and len(prs.CPPatronymic) == 0:
+            for sn in prs.CPSurname:
+                _text = _text + sn + ';'
+            for nm in prs.CPName:
+                _text = _text + nm + ';;'
+            for bd in prs.CPBirthday:
+                _text = _text + bd + ';;\n'
+
 
         #### Если у лица есть старые Фамилия, Имя и Отчество
         if len(prs.CPLSurname) > 0 and len(prs.CPLName) > 0 and len(prs.CPLPatronymic) > 0:
@@ -455,10 +466,11 @@ class MainWindow(QMainWindow):
                 # Создаем список списков, в каждом из которых уникальные лица со всем тегами, отфильтрованными до этого этапа
                 xml_after_decomposing_by_indexes_into_lists = decomposing_xml_by_indexes_into_lists(xml_after_cut,
                                                                                                     xml_after_index)
-                # print('xml_after_decomposing_by_indexes_into_lists: ', xml_after_decomposing_by_indexes_into_lists)
+                print('xml_after_decomposing_by_indexes_into_lists: ', xml_after_decomposing_by_indexes_into_lists)
 
                 # Создаем словарь с группами (тип заявления: список лиц)
                 persons_dict = add_person_to_dict(xml_after_decomposing_by_indexes_into_lists)
+                #print(f'persons_dict: {persons_dict}')
 
                 # Распределение итогового текста на 3 группы (ЕПГУ | Физ лицо | МФЦ)
                 self.text_epgu, self.text_mfc, self.text_fl = classify_text_by_query_type(persons_dict)
