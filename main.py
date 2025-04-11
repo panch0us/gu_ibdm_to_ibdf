@@ -197,6 +197,14 @@ def cut_date_birth(date_birth):
         print(search_date)
         raise SyntaxError("Ошибка. Неверный формат даты?")
 
+def reverse_date_birth(date_birth):
+    """
+    Принимаем тег CPBirthday и его содержимое в виде ДД.ММ.ГГГГ или ДД-ММ-ГГГГ, удалям тег, возвращаем ГГГГ.ММ.ДД
+    :param date_birth:
+    :return: содержимое тега в виде ГГГГ.ММ.ДД
+    """
+    return f'{date_birth[6:]};{date_birth[3:5]};{date_birth[:2]}\n'
+
 def create_text(bind_persons_dict):
     """
     Создает итоговый текст с нужным форматом фамилия;имя;отчество;чч;мм;гггг;;
@@ -216,11 +224,16 @@ def create_text(bind_persons_dict):
             if len(prs.CPPatronymic) > 0:
                 for pn in prs.CPPatronymic:
                     _text = _text + pn + ';'
+                for bd in prs.CPBirthday:
+                    _text = _text + cut_date_birth(bd) + ';;\n'
+                    _text = _text + f'{sn[:4]}%;{nm[:2]}%;{pn[:2]}%;{reverse_date_birth(bd)}'
             # Если нет отчества
             elif len(prs.CPPatronymic) == 0:
                 _text = _text + ';'
-            for bd in prs.CPBirthday:
-                _text = _text + cut_date_birth(bd) + ';;\n'
+                for bd in prs.CPBirthday:
+                    _text = _text + cut_date_birth(bd) + ';;\n'
+                    _text = _text + f'{sn[:4]}%;{nm[:2]}%;;{reverse_date_birth(bd)}'
+                    #{reverse_date_birth(bd)}
 
         #### Если у лица есть старые Фамилия, Имя и Отчество
         if len(prs.CPLSurname) > 0 and len(prs.CPLName) > 0 and len(prs.CPLPatronymic) > 0:
@@ -229,14 +242,16 @@ def create_text(bind_persons_dict):
                     for lpn in prs.CPLPatronymic:
                         for bd in prs.CPBirthday:
                             _text = _text + f'{ls};{ln};{lpn};{cut_date_birth(bd)};;\n'
+                            _text = _text + f'{ls[:4]}%;{ln[:2]}%;{lpn[:2]}%;{reverse_date_birth(bd)}'
 
-        #### Если у лица есть только старые Фамилия и Имя
+        #### Если у лица есть старые Фамилия и Имя
         elif len(prs.CPLSurname) > 0 and len(prs.CPLName) > 0:
             for ls in prs.CPLSurname:
                 for ln in prs.CPLName:
                     for pn in prs.CPPatronymic:
                         for bd in prs.CPBirthday:
                             _text = _text + f'{ls};{ln};{pn};{cut_date_birth(bd)};;\n'
+                            _text = _text + f'{ls[:4]}%;{ln[:2]}%;{pn[:2]}%;{reverse_date_birth(bd)}'
 
         #### Если у лица есть только старая Фамилия
         elif len(prs.CPLSurname) > 0:
@@ -246,11 +261,17 @@ def create_text(bind_persons_dict):
                     if len(prs.CPPatronymic) > 0:
                         for pn in prs.CPPatronymic:
                             for bd in prs.CPBirthday:
+                                # строка со Старой фамилией, Именем, Отчеством и годом рождения
                                 _text = _text + f'{ls};{nm};{pn};{cut_date_birth(bd)};;\n'
+                                # строка со Старой фами%, Им%, Отч% и полной датой рождения в формате ГГГГ.ММ.ДД
+                                _text = _text + f'{ls[:4]}%;{nm[:2]}%;{pn[:2]}%;{reverse_date_birth(bd)}'
                     # Иначе если отчества нет
                     elif len(prs.CPPatronymic) == 0:
                         for bd in prs.CPBirthday:
+                            # строка со Старой фамилией, Именем и годом рождения
                             _text = _text + f'{ls};{nm};;{cut_date_birth(bd)};;\n'
+                            # строка со Старой фами%, Им% и полной датой рождения в формате ГГГГ.ММ.ДД
+                            _text = _text + f'{ls[:4]}%;{nm[:2]}%;;{reverse_date_birth(bd)}'
 
     return _text
 
