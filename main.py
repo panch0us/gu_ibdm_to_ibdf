@@ -535,7 +535,7 @@ class MainWindow(QMainWindow):
             'Почта:\t\tgodbryansk@yandex.ru\n'
             'Telegram:\thttps://t.me/panch0us\n'
             'Github:\t\thttps://github.com/panch0us/gu_ibdm_to_ibdf\n'
-            'Версия:\t\t1.0\n'
+            'Версия:\t\t1.1\n'
             'Год:\t\t2025'
         )
 
