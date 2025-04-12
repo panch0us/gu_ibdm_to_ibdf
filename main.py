@@ -47,8 +47,7 @@ def cut_xml(bind_xml_after_strip, bind_tags):
     :param bind_tags:
     :return: список лиц с Видом заявления, ФИО и Датой рождения
     """
-    return [el
-            for el in bind_xml_after_strip
+    return [el for el in bind_xml_after_strip
                 for tag in bind_tags
                     if el.startswith(tag)]
 
@@ -225,35 +224,42 @@ def create_text(bind_persons_dict):
                 for pn in prs.CPPatronymic:
                     _text = _text + pn + ';'
                 for bd in prs.CPBirthday:
+                    # строка с фамилией, именем, отчеством и датой рождения ГГГГ
                     _text = _text + cut_date_birth(bd) + ';;\n'
+                    # строка с фами%, им%, от% и датой рождения ГГГГ.ММ.ДД
                     _text = _text + f'{sn[:4]}%;{nm[:2]}%;{pn[:2]}%;{reverse_date_birth(bd)}'
             # Если нет отчества
             elif len(prs.CPPatronymic) == 0:
                 _text = _text + ';'
                 for bd in prs.CPBirthday:
+                    # строка с фамилией, именем и датой рождения ГГГГ
                     _text = _text + cut_date_birth(bd) + ';;\n'
+                    # строка с фами%, им% и датой рождения ГГГГ.ММ.ДД
                     _text = _text + f'{sn[:4]}%;{nm[:2]}%;;{reverse_date_birth(bd)}'
-                    #{reverse_date_birth(bd)}
 
-        #### Если у лица есть старые Фамилия, Имя и Отчество
+        #### Если у лица есть старые фамилия, имя и отчество
         if len(prs.CPLSurname) > 0 and len(prs.CPLName) > 0 and len(prs.CPLPatronymic) > 0:
             for ls in prs.CPLSurname:
                 for ln in prs.CPLName:
                     for lpn in prs.CPLPatronymic:
                         for bd in prs.CPBirthday:
+                            # строка со старой фамилией, именем, отчеством и датой рождения ГГГГ
                             _text = _text + f'{ls};{ln};{lpn};{cut_date_birth(bd)};;\n'
+                            # строка со старой фами%, им% и датой рождения ГГГГ.ММ.ДД
                             _text = _text + f'{ls[:4]}%;{ln[:2]}%;{lpn[:2]}%;{reverse_date_birth(bd)}'
 
-        #### Если у лица есть старые Фамилия и Имя
+        #### Если у лица есть старая фамилия и старое имя
         elif len(prs.CPLSurname) > 0 and len(prs.CPLName) > 0:
             for ls in prs.CPLSurname:
                 for ln in prs.CPLName:
                     for pn in prs.CPPatronymic:
                         for bd in prs.CPBirthday:
+                            # строка со старой фамилией, старым именем, отчеством и датой рождения ГГГГ
                             _text = _text + f'{ls};{ln};{pn};{cut_date_birth(bd)};;\n'
+                            # строка со старой фами%, старое им%, от% и датой рождения ГГГГ.ММ.ДД
                             _text = _text + f'{ls[:4]}%;{ln[:2]}%;{pn[:2]}%;{reverse_date_birth(bd)}'
 
-        #### Если у лица есть только старая Фамилия
+        #### Если у лица есть только старая фамилия
         elif len(prs.CPLSurname) > 0:
             for ls in prs.CPLSurname:
                 for nm in prs.CPName:
@@ -261,18 +267,17 @@ def create_text(bind_persons_dict):
                     if len(prs.CPPatronymic) > 0:
                         for pn in prs.CPPatronymic:
                             for bd in prs.CPBirthday:
-                                # строка со Старой фамилией, Именем, Отчеством и годом рождения
+                                # строка со старой фамилией, Именем, Отчеством и датой рождения ГГГГ
                                 _text = _text + f'{ls};{nm};{pn};{cut_date_birth(bd)};;\n'
-                                # строка со Старой фами%, Им%, Отч% и полной датой рождения в формате ГГГГ.ММ.ДД
+                                # строка со старой фами%, Им%, Отч% и датой рождения ГГГГ.ММ.ДД
                                 _text = _text + f'{ls[:4]}%;{nm[:2]}%;{pn[:2]}%;{reverse_date_birth(bd)}'
                     # Иначе если отчества нет
                     elif len(prs.CPPatronymic) == 0:
                         for bd in prs.CPBirthday:
-                            # строка со Старой фамилией, Именем и годом рождения
+                            # строка со старой фамилией, Именем и датой рождения ГГГГ
                             _text = _text + f'{ls};{nm};;{cut_date_birth(bd)};;\n'
-                            # строка со Старой фами%, Им% и полной датой рождения в формате ГГГГ.ММ.ДД
+                            # строка со старой фами%, Им% и датой рождения ГГГГ.ММ.ДД
                             _text = _text + f'{ls[:4]}%;{nm[:2]}%;;{reverse_date_birth(bd)}'
-
     return _text
 
 def save_text_in_files(bind_text_epgu, bind_text_mfc, bind_text_fl, bind_directory):
