@@ -259,6 +259,15 @@ def create_text(bind_persons_dict):
                             # строка со старой фами%, старое им%, от% и датой рождения ГГГГ.ММ.ДД
                             _text = _text + f'{ls[:4]}%;{ln[:2]}%;{pn[:2]}%;{reverse_date_birth(bd)}'
 
+        #### Если у лица есть старая Фамилия и старое Отчество
+        elif len(prs.CPLSurname) > 0 and len(prs.CPLName) == 0 and len(prs.CPLPatronymic) > 0:
+            for ls in prs.CPLSurname:
+                for lp in prs.CPLPatronymic:
+                    for pn in prs.CPName:
+                        for bd in prs.CPBirthday:
+                            _text = _text + f'{ls};{pn};{lp};{cut_date_birth(bd)};;\n'
+                            _text = _text + f'{ls[:4]}%;{pn[:2]}%;{lp[:2]}%;{reverse_date_birth(bd)}'
+
         #### Если у лица есть только старая фамилия
         elif len(prs.CPLSurname) > 0:
             for ls in prs.CPLSurname:
@@ -540,7 +549,7 @@ class MainWindow(QMainWindow):
             'Почта:\t\tgodbryansk@yandex.ru\n'
             'Telegram:\thttps://t.me/panch0us\n'
             'Github:\t\thttps://github.com/panch0us/gu_ibdm_to_ibdf\n'
-            'Версия:\t\t1.1\n'
+            'Версия:\t\t1.2\n'
             'Год:\t\t2025'
         )
 

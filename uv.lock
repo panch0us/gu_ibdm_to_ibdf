@@ -12,7 +12,7 @@ wheels = [
 
 [[package]]
 name = "gu-ibdm-to-ibdf"
-version = "1.0.0"
+version = "1.2.0"
 source = { virtual = "." }
 dependencies = [
     { name = "pyinstaller" },
